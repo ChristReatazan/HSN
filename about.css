@@ -1,0 +1,894 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* ========================================
+   GLOBAL SETTINGS
+======================================== */
+
+:root {
+    --primary: #00a878;
+    --primary-dark: #008f68;
+    --primary-light: #eaf8f2;
+    --dark: #172720;
+    --dark-secondary: #203b2e;
+    --text: #66736c;
+    --light: #f7faf8;
+    --white: #ffffff;
+    --border: #e9efeb;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--dark);
+    background: var(--white);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 90px;
+    min-height: 90px;
+    padding: 5px 5%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid #edf1ee;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.035);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.logo-image {
+    width: 250px;
+    height: 115px;
+    object-fit: contain;
+    transform: scale(1.25);
+    transform-origin: left center;
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.navigation a {
+    position: relative;
+    color: #435148;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+
+.navigation a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -8px;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.navigation a:hover,
+.navigation a.active {
+    color: var(--primary);
+}
+
+.navigation a:hover::after,
+.navigation a.active::after {
+    width: 100%;
+}
+
+.menu-toggle {
+    display: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    margin: 5px 0;
+    background: var(--dark);
+    transition: 0.3s ease;
+}
+
+/* ========================================
+   ABOUT HERO
+======================================== */
+
+.about-hero {
+    position: relative;
+    min-height: 480px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 80px 10%;
+    overflow: hidden;
+    background: var(--dark);
+}
+
+.about-hero-image {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.about-hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.about-hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    background: linear-gradient(
+        90deg,
+        rgba(12, 32, 24, 0.94) 0%,
+        rgba(12, 32, 24, 0.78) 45%,
+        rgba(12, 32, 24, 0.28) 100%
+    );
+}
+
+.about-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 720px;
+    color: var(--white);
+}
+
+.eyebrow {
+    display: inline-block;
+    color: #70e0b5;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+}
+
+.about-hero-content h1 {
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(38px, 5vw, 62px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 22px;
+}
+
+.about-hero-content p {
+    max-width: 620px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 17px;
+    line-height: 1.8;
+    margin-bottom: 28px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.breadcrumb a {
+    color: #70e0b5;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+}
+
+/* ========================================
+   COMPANY OVERVIEW
+======================================== */
+
+.company-overview {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 90px;
+
+    padding: 110px 10%;
+    background: var(--white);
+}
+
+.overview-heading {
+    position: sticky;
+    top: 130px;
+    align-self: start;
+}
+
+.section-label {
+    display: inline-block;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    margin-bottom: 18px;
+}
+
+.overview-heading h2,
+.section-heading h2,
+.acer-content h2,
+.about-closing h2 {
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(30px, 3.5vw, 43px);
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.overview-heading h2 span {
+    color: var(--primary);
+}
+
+.overview-content p {
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.9;
+    margin-bottom: 22px;
+}
+
+/* ========================================
+   CORE SERVICES
+======================================== */
+
+.core-services {
+    padding: 100px 10%;
+    background: var(--light);
+}
+
+.section-heading {
+    max-width: 650px;
+    margin-bottom: 55px;
+}
+
+.section-heading p {
+    color: var(--text);
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.service-card {
+    position: relative;
+    min-height: 235px;
+    padding: 32px;
+
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-7px);
+    border-color: rgba(0, 168, 120, 0.35);
+    box-shadow: 0 18px 40px rgba(0, 80, 55, 0.09);
+}
+
+.service-number {
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+}
+
+.service-card h3 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+    margin-bottom: 13px;
+}
+
+.service-card p {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* ========================================
+   ACER SECTION
+======================================== */
+
+.acer-section {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 70px;
+    align-items: center;
+
+    padding: 110px 10%;
+    background: var(--white);
+}
+
+.acer-content h2 {
+    max-width: 600px;
+    margin-bottom: 22px;
+}
+
+.acer-content p {
+    max-width: 620px;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.9;
+    margin-bottom: 28px;
+}
+
+.acer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 13px 22px;
+
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 6px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition:
+        background 0.3s ease,
+        transform 0.3s ease;
+}
+
+.acer-link:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   ACER PARENT COMPANY IMAGE
+======================================== */
+
+.acer-highlight {
+    position: relative;
+    width: 100%;
+    min-height: 280px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+
+    overflow: visible;
+}
+
+.acer-highlight::before,
+.acer-highlight::after {
+    display: none;
+}
+
+.acer-highlight span {
+    display: block;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* Acer Image */
+
+.acer-image {
+    width: 100%;
+    max-width: 380px;
+    height: 220px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto;
+
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+
+    overflow: visible;
+
+    transition: transform 0.3s ease;
+}
+
+.acer-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    object-position: center;
+}
+
+.acer-highlight:hover .acer-image {
+    transform: scale(1.03);
+}
+
+.acer-highlight p {
+    display: none;
+}
+
+/* ========================================
+   CLOSING SECTION
+======================================== */
+
+.about-closing {
+    position: relative;
+    padding: 90px 10%;
+    text-align: center;
+    background: var(--primary-light);
+    overflow: hidden;
+}
+
+.about-closing h2 {
+    max-width: 750px;
+    margin: 0 auto 18px;
+}
+
+.about-closing p {
+    color: var(--text);
+    margin-bottom: 30px;
+}
+
+.closing-button {
+    display: inline-block;
+    padding: 14px 25px;
+
+    background: var(--primary);
+    color: var(--white);
+
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+
+    transition:
+        background 0.3s ease,
+        transform 0.3s ease;
+}
+
+.closing-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+}
+
+/* ========================================
+   FOOTER
+======================================== */
+
+.footer {
+    padding: 40px 10%;
+    background: #14231c;
+    color: var(--white);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+}
+
+.footer-content h3 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.footer-content p {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+}
+
+.copyright {
+    text-align: right;
+}
+
+/* ========================================
+   RESPONSIVE: TABLET
+======================================== */
+
+@media (max-width: 1100px) {
+    .navigation {
+        gap: 15px;
+    }
+
+    .navigation a {
+        font-size: 12px;
+    }
+
+    .logo-image {
+        width: 210px;
+        height: 100px;
+        transform: scale(1.15);
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .company-overview {
+        gap: 50px;
+    }
+
+    .acer-section {
+        grid-template-columns: 1fr 0.9fr;
+        gap: 40px;
+    }
+
+    .acer-image {
+        max-width: 330px;
+        height: 190px;
+    }
+}
+
+/* ========================================
+   RESPONSIVE: MOBILE NAVIGATION
+======================================== */
+
+@media (max-width: 850px) {
+    .header {
+        height: 75px;
+        min-height: 75px;
+    }
+
+    .logo-image {
+        width: 200px;
+        height: 90px;
+        transform: scale(1.1);
+    }
+
+    .menu-toggle {
+        display: block;
+        z-index: 1001;
+    }
+
+    .navigation {
+        position: absolute;
+        top: 75px;
+        left: 0;
+
+        width: 100%;
+
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+
+        padding: 15px 7% 25px;
+
+        background: var(--white);
+        box-shadow: 0 15px 20px rgba(0, 0, 0, 0.07);
+    }
+
+    .navigation.show {
+        display: flex;
+    }
+
+    .navigation a {
+        width: 100%;
+        padding: 13px 0;
+        font-size: 14px;
+    }
+
+    .navigation a::after {
+        display: none;
+    }
+
+    .company-overview {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        padding: 80px 7%;
+    }
+
+    .overview-heading {
+        position: static;
+    }
+
+    .core-services,
+    .acer-section {
+        padding: 80px 7%;
+    }
+
+    .acer-section {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .acer-highlight {
+        min-height: 230px;
+        padding: 15px;
+    }
+
+    .acer-image {
+        max-width: 380px;
+        height: 200px;
+    }
+
+    .about-hero {
+        padding: 75px 7%;
+    }
+}
+
+/* ========================================
+   RESPONSIVE: SMALL MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+    .logo-image {
+        width: 175px;
+        height: 80px;
+        transform: scale(1.05);
+    }
+
+    .about-hero {
+        min-height: 420px;
+        padding: 70px 7%;
+    }
+
+    .about-hero-overlay {
+        background: rgba(12, 32, 24, 0.82);
+    }
+
+    .about-hero-content h1 {
+        font-size: 38px;
+    }
+
+    .about-hero-content p {
+        font-size: 15px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .service-card {
+        min-height: auto;
+    }
+
+    .section-heading {
+        margin-bottom: 35px;
+    }
+
+    .acer-highlight {
+        min-height: 190px;
+        padding: 10px;
+    }
+
+    .acer-highlight span {
+        font-size: 11px;
+        margin-bottom: 18px;
+    }
+
+    .acer-image {
+        max-width: 300px;
+        height: 160px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .copyright {
+        text-align: left;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+
+/* HSN FOOTER */
+
+.hsn-footer {
+    width: 100%;
+    background: #09251c;
+    color: #fff;
+    font-family: "DM Sans", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.hsn-footer-container {
+    width: min(1180px, calc(100% - 80px));
+    margin: 0 auto;
+    padding: 65px 0;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 45px;
+    align-items: start;
+}
+
+.hsn-footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.hsn-footer-logo {
+    display: inline-block;
+    padding: 0;
+    background: transparent;
+}
+
+.hsn-footer-logo img {
+    display: block;
+    width: 210px;
+    height: auto;
+    object-fit: contain;
+    background: transparent;
+}
+
+.hsn-footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 13px;
+}
+
+.hsn-footer-column h3 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    padding-bottom: 12px;
+    position: relative;
+}
+
+.hsn-footer-column h3::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 28px;
+    height: 2px;
+    background: #00a878;
+}
+
+.hsn-footer-column a {
+    color: #aabbb1;
+    font-size: 12px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.hsn-footer-column a:hover {
+    color: #53d6aa;
+}
+
+.hsn-footer-bottom {
+    width: 100%;
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: #071e17;
+}
+
+.hsn-footer-bottom-inner {
+    width: min(1180px, calc(100% - 80px));
+    min-height: 65px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.hsn-footer-bottom-inner p,
+.hsn-footer-bottom-inner a {
+    margin: 0;
+    color: #84998e;
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.hsn-footer-bottom-inner a:hover {
+    color: #53d6aa;
+}
+
+/* TABLET */
+
+@media (max-width: 850px) {
+    .hsn-footer-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+
+    .hsn-footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+/* MOBILE */
+
+@media (max-width: 520px) {
+    .hsn-footer-container {
+        width: calc(100% - 40px);
+        padding: 45px 0;
+        gap: 35px 20px;
+    }
+
+    .hsn-footer-logo img {
+        width: 180px;
+    }
+
+    .hsn-footer-bottom-inner {
+        width: calc(100% - 40px);
+        min-height: 65px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 15px 0;
+    }
+
+    .hsn-footer-bottom-inner p,
+    .hsn-footer-bottom-inner a {
+        font-size: 10px;
+    }
+}
+

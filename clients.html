@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover HSN Philippines' trusted client partnerships and service capabilities.">
+    <title>Our Partners | HSN Philippines</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="clients.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <a href="index.html" class="brand">
+            <img src="./images/hsn.jpg" alt="HSN Philippines">
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="main-nav" id="mainNav">
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="index.html#location">Location</a>
+            <a href="index.html#careers">Careers</a>
+            <a href="clients.html" class="active">Clients</a>
+            <a href="index.html#announcements">Announcements</a>
+            <a href="dps.html">Data Privacy Statement</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-pattern"></div>
+
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <span class="eyebrow">
+                    <span class="eyebrow-line"></span>
+                    OUR CLIENTS & PARTNERS
+                </span>
+
+                <h1>
+                    Stronger<br>
+                    <span>Together.</span>
+                </h1>
+
+                <p>
+                    Empower your Outsourcing and Service needs with us!
+                    At HSN, we measure our success by the relationships we build
+                    and expectations we exceed. We are passionate about knowing
+                    your customers' needs. We are your extended team.
+                    Let's Make it Happen!
+                </p>
+
+                <a href="#partners" class="hero-link">
+                    Explore our partners
+                    <span>↗</span>
+                </a>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="visual-ring ring-one"></div>
+                <div class="visual-ring ring-two"></div>
+
+                <div class="visual-center">
+                    <span>HSN</span>
+                    <small>PARTNERSHIPS</small>
+                </div>
+
+                <div class="floating-label label-one">SERVICE EXCELLENCE</div>
+                <div class="floating-label label-two">TRUSTED PARTNERS</div>
+
+                <div class="visual-cross cross-one">+</div>
+                <div class="visual-cross cross-two">+</div>
+            </div>
+        </div>
+
+        <div class="hero-bottom">
+            <span>BUILDING RELATIONSHIPS</span>
+            <span class="hero-bottom-line"></span>
+            <span>DELIVERING EXCELLENCE</span>
+        </div>
+    </section>
+
+
+    <!-- BRAND PARTNERS SECTION -->
+    <section class="partners-section" id="partners">
+
+        <div class="section-top">
+            <div>
+                <span class="section-kicker">THE COMPANIES WE WORK WITH</span>
+
+                <h2>Our Brand <span>Partners.</span></h2>
+
+                <p>
+                    Explore our partner brands and the services we provide.
+                    Select a brand to view its profile.
+                </p>
+            </div>
+
+            <div class="partner-count">
+                <strong id="partnerCount">13</strong>
+                <span>FEATURED<br>PARTNERS</span>
+            </div>
+        </div>
+
+        <div class="partner-controls">
+
+            <div class="control-caption">
+                <span class="status-dot"></span>
+                PARTNER DIRECTORY
+            </div>
+
+            <label class="search-field">
+                <span>⌕</span>
+                <input
+                    type="search"
+                    id="clientSearch"
+                    placeholder="Find a partner..."
+                >
+                <kbd>SEARCH</kbd>
+            </label>
+
+        </div>
+
+        <div class="partners-grid" id="clientsGrid"></div>
+
+        <div class="empty-state" id="noResults" hidden>
+            <span>⌕</span>
+            <h3>No partners found</h3>
+            <p>Try another search term.</p>
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- PARTNER PROFILE MODAL -->
+<div class="modal-backdrop" id="clientModal" aria-hidden="true">
+
+    <section
+        class="partner-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalBrandName"
+    >
+
+        <button class="modal-close" id="modalClose" aria-label="Close profile">
+            &times;
+        </button>
+
+        <div class="modal-header">
+
+            <div class="modal-brand-logo">
+                <img src="" alt="" id="modalLogo">
+            </div>
+
+            <div class="modal-brand-details">
+                <span class="modal-kicker">HSN PARTNER PROFILE</span>
+                <h2 id="modalBrandName"></h2>
+                <p id="modalProfile"></p>
+            </div>
+
+        </div>
+
+        <div class="modal-content">
+
+            <!-- PRODUCTS -->
+            <div class="profile-section" id="productsSection">
+
+                <div class="profile-section-heading">
+                    <span class="section-number">01</span>
+
+                    <div>
+                        <span class="section-mini-label">PRODUCT PORTFOLIO</span>
+                        <h3>Products</h3>
+                    </div>
+                </div>
+
+                <ul class="profile-list" id="modalProducts"></ul>
+
+            </div>
+
+
+            <!-- SERVICES -->
+            <div class="profile-section">
+
+                <div class="profile-section-heading">
+                    <span class="section-number">02</span>
+
+                    <div>
+                        <span class="section-mini-label">SERVICE CAPABILITIES</span>
+                        <h3>Services</h3>
+                    </div>
+                </div>
+
+                <ul class="profile-list" id="modalServices"></ul>
+
+            </div>
+
+
+            <!-- COVERAGE -->
+            <div class="profile-section coverage-section" id="coverageSection">
+
+                <div class="profile-section-heading">
+                    <span class="section-number">03</span>
+
+                    <div>
+                        <span class="section-mini-label">SERVICE NETWORK</span>
+                        <h3>Coverage</h3>
+                    </div>
+                </div>
+
+                <ul class="profile-list" id="modalCoverage"></ul>
+
+            </div>
+
+        </div>
+
+        <div class="modal-bottom">
+            <span class="modal-bottom-mark">HSN.</span>
+            <span>PARTNERSHIP & SERVICE EXCELLENCE</span>
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- HSN FOOTER -->
+<footer class="hsn-footer">
+
+    <div class="hsn-footer-container">
+
+        <div class="hsn-footer-brand">
+            <a href="index.html" class="hsn-footer-logo">
+                <img src="images/hsn.jpg" alt="HSN Philippines Logo">
+            </a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Company</h3>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Services</a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Quick Links</h3>
+            <a href="clients.html">Clients</a>
+            <a href="#">Service Status Inquiry</a>
+            <a href="#">E-Support</a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Support</h3>
+            <a href="#">Service Centre's</a>
+            <a href="#">Contact Us</a>
+        </div>
+
+    </div>
+
+    <div class="hsn-footer-bottom">
+        <div class="hsn-footer-bottom-inner">
+            <p>Copyright © 2021 HSN - All rights reserved.</p>
+            <a href="#">Terms of Service</a>
+        </div>
+    </div>
+
+</footer>
+
+
+<script src="clients.js"></script>
+
+</body>
+</html>
