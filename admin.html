@@ -1,445 +1,463 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#101827">
-    <title>Admin Dashboard | HSN Support</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>HSN Philippines | Admin Portal</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body class="admin-page">
 
-    <header class="admin-header">
-        <div class="admin-header-inner">
+<header class="header">
 
-            <a href="admin.html" class="admin-brand">
-                <div class="admin-brand-mark">H</div>
-                <div class="admin-brand-text">
-                    <strong>HSN</strong>
-                    <span>ADMINISTRATION</span>
+    <div class="logo">
+        <a href="index.html">
+            <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
+        </a>
+    </div>
+
+    <nav class="navigation" id="mainNavigation">
+        <a href="index.html">View Website</a>
+        <a href="about.html">About</a>
+        <a href="services.html">Services</a>
+        <a href="#careerManagement">Careers</a>
+        <a href="clients.html">Clients</a>
+        <a href="dps.html">Data Privacy</a>
+    </nav>
+
+    <div class="header-actions">
+
+        <div class="admin-profile">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+
+            <div class="admin-profile-info">
+                <strong id="adminName">Administrator</strong>
+                <span>Administrator</span>
+            </div>
+
+            <button type="button" id="logoutButton" class="admin-logout">
+                Sign Out
+            </button>
+        </div>
+
+        <button
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+            type="button"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+    </div>
+
+</header>
+
+<main>
+
+    <section class="admin-hero">
+
+        <div class="admin-hero-content">
+
+            <span class="admin-eyebrow">
+                HSN PHILIPPINES / ADMINISTRATION
+            </span>
+
+            <h1>
+                Welcome to the <span>Admin Portal.</span>
+            </h1>
+
+            <p>
+                Manage and maintain the HSN Philippines website
+                content and career opportunities.
+            </p>
+
+            <div class="admin-hero-actions">
+                <a href="#careerManagement" class="admin-primary-link">
+                    Manage Careers <span>→</span>
+                </a>
+
+                <a href="index.html" class="admin-secondary-link">
+                    View Public Website
+                </a>
+            </div>
+
+        </div>
+
+        <div class="admin-hero-decoration">
+            <div class="admin-decoration-circle">
+                <div class="admin-decoration-inner">
+                    <span>HSN</span>
+                    <small>ADMIN PORTAL</small>
                 </div>
-            </a>
+            </div>
+        </div>
 
-            <button
-                class="admin-menu-toggle"
-                id="adminMenuToggle"
-                aria-label="Toggle navigation"
-                aria-expanded="false"
-                type="button"
-            >
-                <span></span>
-                <span></span>
-                <span></span>
+    </section>
+
+    <section class="admin-overview">
+
+        <div class="admin-section-heading">
+            <div>
+                <span class="admin-section-eyebrow">OVERVIEW</span>
+                <h2>Dashboard <span>Overview.</span></h2>
+                <p>Quick overview of your career content.</p>
+            </div>
+
+            <div class="admin-date" id="adminCurrentDate"></div>
+        </div>
+
+        <div class="admin-stat-grid">
+
+            <article class="admin-stat-card">
+                <div class="admin-stat-top">
+                    <span>Total Positions</span>
+                    <span class="admin-stat-icon">▤</span>
+                </div>
+                <strong id="totalCareers">0</strong>
+                <small>All career records</small>
+            </article>
+
+            <article class="admin-stat-card">
+                <div class="admin-stat-top">
+                    <span>Published</span>
+                    <span class="admin-stat-icon published-icon">✓</span>
+                </div>
+                <strong id="publishedCareers">0</strong>
+                <small>Visible to website visitors</small>
+            </article>
+
+            <article class="admin-stat-card">
+                <div class="admin-stat-top">
+                    <span>Drafts</span>
+                    <span class="admin-stat-icon draft-icon">◷</span>
+                </div>
+                <strong id="draftCareers">0</strong>
+                <small>Unpublished positions</small>
+            </article>
+
+        </div>
+
+    </section>
+
+    <section class="career-management" id="careerManagement">
+
+        <div class="career-heading">
+
+            <div>
+                <span class="admin-section-eyebrow">CONTENT MANAGEMENT</span>
+                <h2>Career <span>Management.</span></h2>
+                <p>
+                    Manage the job opportunities displayed on the
+                    HSN Philippines public website.
+                </p>
+            </div>
+
+            <button type="button" class="career-add-button" id="addCareerButton">
+                <span>＋</span> Add New Position
             </button>
 
-            <nav class="admin-navigation" id="adminNavigation">
-                <a href="admin.html" class="active">Dashboard</a>
-                <a href="Chat.html">Chat Essentials</a>
-                <a href="POP.html">POP Validation</a>
-            </nav>
+        </div>
 
-            <div class="admin-header-actions">
+        <div class="career-panel">
 
-                <div class="admin-status">
-                    <span class="status-indicator"></span>
-                    <span>System Online</span>
+            <div class="career-panel-header">
+
+                <div>
+                    <h3>Job Opportunities</h3>
+                    <p>Manage your published and draft job positions.</p>
                 </div>
 
-                <div class="admin-profile-wrapper" id="adminProfileWrapper">
+                <div class="career-toolbar">
 
-                    <button
-                        type="button"
-                        class="admin-profile-button"
-                        id="adminProfileButton"
-                        aria-expanded="false"
-                        aria-label="Open administrator profile"
-                    >
-                        <span class="profile-icon">
-                            <icon-placeholder></icon-placeholder>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <circle cx="12" cy="8" r="3.5"></circle>
-                                <path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"></path>
-                            </svg>
-                        </span>
-                        <span class="profile-chevron">⌄</span>
+                    <div class="career-search">
+                        <span>⌕</span>
+                        <input
+                            type="search"
+                            id="careerSearch"
+                            placeholder="Search positions..."
+                        >
+                    </div>
+
+                    <select id="careerFilter" aria-label="Filter positions">
+                        <option value="all">All Positions</option>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+
+                    <button type="button" id="refreshCareers" class="career-refresh-button">
+                        ↻ Refresh
                     </button>
 
-                    <div class="admin-profile-dropdown" id="adminProfileDropdown">
-
-                        <div class="profile-dropdown-header">
-                            <div class="profile-avatar" id="profileAvatar">A</div>
-
-                            <div class="profile-user-info">
-                                <strong id="profileFullName">Administrator</strong>
-                                <span id="profileEmail">Loading account...</span>
-                            </div>
-                        </div>
-
-                        <div class="profile-dropdown-divider"></div>
-
-                        <button type="button" class="profile-dropdown-item" id="openAddAdmin">
-                            <span class="dropdown-item-icon">＋</span>
-                            <span>
-                                <strong>Add New Admin</strong>
-                                <small>Create an administrator account</small>
-                            </span>
-                        </button>
-
-                        <button type="button" class="profile-dropdown-item" id="openEditPassword">
-                            <span class="dropdown-item-icon">⌑</span>
-                            <span>
-                                <strong>Edit Password</strong>
-                                <small>Update your account password</small>
-                            </span>
-                        </button>
-
-                        <div class="profile-dropdown-divider"></div>
-
-                        <button type="button" class="profile-dropdown-item logout-item" id="adminLogout">
-                            <span class="dropdown-item-icon">↗</span>
-                            <span>
-                                <strong>Log Out</strong>
-                                <small>Sign out of your account</small>
-                            </span>
-                        </button>
-
-                    </div>
                 </div>
 
             </div>
+
+            <div class="career-message" id="careerMessage" role="status"></div>
+
+            <div class="career-table-wrapper">
+
+                <table class="career-table">
+
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>Location</th>
+                            <th>Employment Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="careerTableBody">
+
+                        <tr>
+                            <td colspan="6" class="career-empty">
+                                Loading career positions...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="career-table-footer">
+                <span id="careerResultCount">0 positions</span>
+                <span>HSN Philippines Career Management</span>
+            </div>
+
         </div>
-    </header>
 
-    <main class="admin-main">
-
-        <section class="admin-hero">
-            <div class="hero-content">
-                <span class="section-eyebrow">
-                    <span class="eyebrow-line"></span>
-                    HSN MANAGEMENT PORTAL
-                </span>
-
-                <h1>Welcome to your <span>Dashboard.</span></h1>
-
-                <p>
-                    Manage your support resources, documentation,
-                    and administrative tools from one central workspace.
-                </p>
-
-                <div class="hero-date">
-                    <span class="date-icon">◷</span>
-                    <span id="adminCurrentDate">LOADING DATE...</span>
-                </div>
-            </div>
-
-            <div class="hero-decoration">
-                <div class="hero-orbit orbit-one"></div>
-                <div class="hero-orbit orbit-two"></div>
-                <div class="hero-orbit orbit-three"></div>
-                <div class="hero-center">HSN</div>
-            </div>
-        </section>
-
-        <section class="admin-section">
-
-            <div class="section-heading">
-                <div>
-                    <span class="section-eyebrow">OVERVIEW</span>
-                    <h2>Workspace Overview</h2>
-                    <p>Your administrative tools and resources.</p>
-                </div>
-            </div>
-
-            <div class="admin-stats-grid">
-
-                <article class="admin-stat-card">
-                    <div class="stat-top">
-                        <span class="stat-label">SYSTEM STATUS</span>
-                        <span class="stat-symbol">◉</span>
-                    </div>
-                    <div class="stat-value status-value">Operational</div>
-                    <div class="stat-description">All systems accessible</div>
-                </article>
-
-                <article class="admin-stat-card">
-                    <div class="stat-top">
-                        <span class="stat-label">ACCESS LEVEL</span>
-                        <span class="stat-symbol">⌘</span>
-                    </div>
-                    <div class="stat-value">Administrator</div>
-                    <div class="stat-description">Full administrative access</div>
-                </article>
-
-                <article class="admin-stat-card">
-                    <div class="stat-top">
-                        <span class="stat-label">WORKSPACE</span>
-                        <span class="stat-symbol">▦</span>
-                    </div>
-                    <div class="stat-value">HSN Support</div>
-                    <div class="stat-description">Support management portal</div>
-                </article>
-
-            </div>
-        </section>
-
-        <section class="admin-section">
-
-            <div class="section-heading">
-                <div>
-                    <span class="section-eyebrow">APPLICATIONS</span>
-                    <h2>Management Modules</h2>
-                    <p>Select a module to access its tools and features.</p>
-                </div>
-            </div>
-
-            <div class="admin-modules-grid">
-
-                <a href="Chat.html" class="admin-module-card">
-                    <div class="module-card-top">
-                        <div class="module-icon chat-icon">✉</div>
-                        <span class="module-arrow">↗</span>
-                    </div>
-
-                    <div class="module-content">
-                        <span class="module-category">COMMUNICATION</span>
-                        <h3>Chat Essentials</h3>
-                        <p>
-                            Access support templates, customer communication
-                            resources, and essential support tools.
-                        </p>
-                    </div>
-
-                    <div class="module-card-footer">
-                        <span>Open Module</span>
-                        <span>→</span>
-                    </div>
-                </a>
-
-                <a href="POP.html" class="admin-module-card">
-                    <div class="module-card-top">
-                        <div class="module-icon validation-icon">✓</div>
-                        <span class="module-arrow">↗</span>
-                    </div>
-
-                    <div class="module-content">
-                        <span class="module-category">DOCUMENT MANAGEMENT</span>
-                        <h3>POP Validation</h3>
-                        <p>
-                            Validate proof of purchase, proof of fault,
-                            and other supporting documents.
-                        </p>
-                    </div>
-
-                    <div class="module-card-footer">
-                        <span>Open Module</span>
-                        <span>→</span>
-                    </div>
-                </a>
-
-            </div>
-        </section>
-
-        <section class="admin-notice">
-            <div class="notice-icon">i</div>
-            <div class="notice-content">
-                <strong>Administrator Workspace</strong>
-                <p>
-                    Keep your account credentials secure. Only authorized
-                    administrators should have access to this dashboard.
-                </p>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="admin-footer">
-        <div class="admin-footer-inner">
-            <div class="footer-brand">
-                <strong>HSN</strong>
-                <span>SUPPORT MANAGEMENT</span>
-            </div>
-
-            <p>© <span id="adminYear"></span> HSN Support. All rights reserved.</p>
-
-            <span class="footer-system-status">
-                <span class="status-indicator"></span>
-                SYSTEM ONLINE
-            </span>
+        <div class="career-information">
+            <span class="information-icon">i</span>
+            <p>
+                Only published positions will be available for public
+                viewing. Draft positions remain accessible only to
+                authorized administrators.
+            </p>
         </div>
-    </footer>
 
-    <!-- ADD ADMIN MODAL -->
-    <div class="admin-modal-overlay" id="addAdminModal" aria-hidden="true">
-        <div class="admin-modal">
+    </section>
 
-            <div class="admin-modal-header">
-                <div>
-                    <span class="section-eyebrow">ADMINISTRATION</span>
-                    <h2>Add New Administrator</h2>
-                    <p>Create a new administrator account.</p>
-                </div>
+</main>
 
-                <button type="button" class="modal-close" data-close-modal aria-label="Close">
-                    ×
-                </button>
+<footer class="hsn-footer">
+
+    <div class="hsn-footer-container">
+
+        <div class="hsn-footer-brand">
+            <a href="index.html" class="hsn-footer-logo">
+                <img src="images/hsn.jpg" alt="HSN Philippines Logo">
+            </a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Company</h3>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Services</a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Quick Links</h3>
+            <a href="clients.html">Clients</a>
+            <a href="index.html#careers">Careers</a>
+        </div>
+
+        <div class="hsn-footer-column">
+            <h3>Administration</h3>
+            <a href="index.html">Public Website</a>
+            <a href="#" id="footerLogout">Sign Out</a>
+        </div>
+
+    </div>
+
+    <div class="hsn-footer-bottom">
+        <div class="hsn-footer-bottom-inner">
+            <p>Copyright © 2021 HSN - All rights reserved.</p>
+            <a href="dps.html">Data Privacy Statement</a>
+        </div>
+    </div>
+
+</footer>
+
+<!-- CAREER MODAL -->
+
+<div class="career-modal-overlay" id="careerModal" aria-hidden="true">
+
+    <div class="career-modal" role="dialog" aria-modal="true" aria-labelledby="careerModalTitle">
+
+        <div class="career-modal-header">
+
+            <div>
+                <span class="admin-section-eyebrow">CAREER CONTENT</span>
+                <h2 id="careerModalTitle">Add New Position</h2>
+                <p>Provide the details of the job opportunity.</p>
             </div>
 
-            <form id="addAdminForm">
+            <button
+                type="button"
+                class="career-modal-close"
+                id="closeCareerModal"
+                aria-label="Close modal"
+            >
+                &times;
+            </button>
 
-                <div class="admin-form-group">
-                    <label for="newAdminName">Full Name</label>
+        </div>
+
+        <form id="careerForm">
+
+            <input type="hidden" id="careerId">
+
+            <div class="career-form-grid">
+
+                <div class="career-form-field full-width">
+                    <label for="careerTitle">Job Title *</label>
                     <input
                         type="text"
-                        id="newAdminName"
-                        placeholder="Enter full name"
-                        autocomplete="name"
+                        id="careerTitle"
+                        placeholder="e.g. Customer Service Representative"
+                        maxlength="180"
                         required
                     >
                 </div>
 
-                <div class="admin-form-group">
-                    <label for="newAdminEmail">Email Address</label>
+                <div class="career-form-field">
+                    <label for="careerDepartment">Department *</label>
                     <input
-                        type="email"
-                        id="newAdminEmail"
-                        placeholder="Enter email address"
-                        autocomplete="email"
+                        type="text"
+                        id="careerDepartment"
+                        placeholder="e.g. Operations"
+                        maxlength="120"
                         required
                     >
                 </div>
 
-                <div class="admin-form-group">
-                    <label for="newAdminPassword">Password</label>
-                    <div class="password-input-wrapper">
-                        <input
-                            type="password"
-                            id="newAdminPassword"
-                            placeholder="Create password"
-                            autocomplete="new-password"
-                            minlength="8"
-                            required
-                        >
-                        <button type="button" class="password-toggle" data-toggle-password="newAdminPassword">
-                            Show
-                        </button>
-                    </div>
+                <div class="career-form-field">
+                    <label for="careerLocation">Location *</label>
+                    <input
+                        type="text"
+                        id="careerLocation"
+                        placeholder="e.g. Quezon City, Philippines"
+                        maxlength="150"
+                        required
+                    >
                 </div>
 
-                <div class="admin-form-group">
-                    <label for="confirmNewAdminPassword">Confirm Password</label>
-                    <div class="password-input-wrapper">
-                        <input
-                            type="password"
-                            id="confirmNewAdminPassword"
-                            placeholder="Confirm password"
-                            autocomplete="new-password"
-                            required
-                        >
-                        <button type="button" class="password-toggle" data-toggle-password="confirmNewAdminPassword">
-                            Show
-                        </button>
-                    </div>
+                <div class="career-form-field full-width">
+                    <label for="careerEmploymentType">Employment Type *</label>
+                    <select id="careerEmploymentType" required>
+                        <option value="">Select employment type</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Project-based">Project-based</option>
+                        <option value="Internship">Internship</option>
+                    </select>
                 </div>
 
-                <div class="admin-form-message" id="addAdminMessage" role="status"></div>
-
-                <button type="submit" class="admin-primary-button" id="createAdminButton">
-                    CREATE ADMIN
-                    <span>→</span>
-                </button>
-
-            </form>
-        </div>
-    </div>
-
-    <!-- EDIT PASSWORD MODAL -->
-    <div class="admin-modal-overlay" id="editPasswordModal" aria-hidden="true">
-        <div class="admin-modal">
-
-            <div class="admin-modal-header">
-                <div>
-                    <span class="section-eyebrow">ACCOUNT SECURITY</span>
-                    <h2>Edit Password</h2>
-                    <p>Update your administrator account password.</p>
+                <div class="career-form-field full-width">
+                    <label for="careerDescription">Job Description *</label>
+                    <textarea
+                        id="careerDescription"
+                        rows="5"
+                        placeholder="Describe the responsibilities and nature of the role..."
+                        required
+                    ></textarea>
                 </div>
 
-                <button type="button" class="modal-close" data-close-modal aria-label="Close">
-                    ×
-                </button>
+                <div class="career-form-field full-width">
+                    <label for="careerRequirements">Qualifications and Requirements</label>
+                    <textarea
+                        id="careerRequirements"
+                        rows="5"
+                        placeholder="Enter the qualifications and requirements..."
+                    ></textarea>
+                    <small>Use a new line for each requirement.</small>
+                </div>
+
             </div>
 
-            <form id="editPasswordForm">
+            <div class="career-publish-option">
+                <label class="career-switch">
+                    <input type="checkbox" id="careerPublished">
+                    <span class="career-switch-slider"></span>
+                </label>
 
-                <div class="admin-form-group">
-                    <label for="currentPassword">Current Password</label>
-                    <div class="password-input-wrapper">
-                        <input
-                            type="password"
-                            id="currentPassword"
-                            placeholder="Enter current password"
-                            autocomplete="current-password"
-                            required
-                        >
-                        <button type="button" class="password-toggle" data-toggle-password="currentPassword">
-                            Show
-                        </button>
-                    </div>
+                <div>
+                    <strong>Publish this position</strong>
+                    <small>
+                        When enabled, this position can be displayed
+                        on the public website.
+                    </small>
                 </div>
+            </div>
 
-                <div class="admin-form-group">
-                    <label for="newPassword">New Password</label>
-                    <div class="password-input-wrapper">
-                        <input
-                            type="password"
-                            id="newPassword"
-                            placeholder="Enter new password"
-                            autocomplete="new-password"
-                            minlength="8"
-                            required
-                        >
-                        <button type="button" class="password-toggle" data-toggle-password="newPassword">
-                            Show
-                        </button>
-                    </div>
-                </div>
+            <div class="career-form-message" id="careerFormMessage" role="alert"></div>
 
-                <div class="admin-form-group">
-                    <label for="confirmNewPassword">Confirm New Password</label>
-                    <div class="password-input-wrapper">
-                        <input
-                            type="password"
-                            id="confirmNewPassword"
-                            placeholder="Confirm new password"
-                            autocomplete="new-password"
-                            required
-                        >
-                        <button type="button" class="password-toggle" data-toggle-password="confirmNewPassword">
-                            Show
-                        </button>
-                    </div>
-                </div>
+            <div class="career-modal-actions">
 
-                <div class="admin-form-message" id="editPasswordMessage" role="status"></div>
-
-                <button type="submit" class="admin-primary-button" id="updatePasswordButton">
-                    UPDATE PASSWORD
-                    <span>→</span>
+                <button type="button" class="career-cancel-button" id="cancelCareerButton">
+                    Cancel
                 </button>
 
-            </form>
-        </div>
+                <button type="submit" class="career-save-button" id="saveCareerButton">
+                    Save Position
+                </button>
+
+            </div>
+
+        </form>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="admin.js"></script>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+
+<div class="career-modal-overlay" id="deleteModal" aria-hidden="true">
+
+    <div class="career-delete-modal" role="dialog" aria-modal="true">
+
+        <div class="delete-icon">!</div>
+
+        <h2>Delete Position?</h2>
+
+        <p>
+            Are you sure you want to permanently delete this career
+            position? This action cannot be undone.
+        </p>
+
+        <div class="career-modal-actions">
+
+            <button type="button" class="career-cancel-button" id="cancelDeleteButton">
+                Cancel
+            </button>
+
+            <button type="button" class="career-delete-confirm-button" id="confirmDeleteButton">
+                Delete Position
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
 
 </body>
 </html>
