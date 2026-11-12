@@ -5,359 +5,415 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#09251c">
-
     <title>Admin Dashboard | HSN Philippines</title>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 
 <body class="admin-page">
 
-    <!-- HEADER -->
+<header class="admin-header">
+    <div class="admin-header-inner">
 
-    <header class="header admin-header">
+        <a href="index.html" class="admin-logo">
+            <span class="admin-logo-mark">HSN</span>
+            <span class="admin-logo-text">PHILIPPINES</span>
+        </a>
 
-        <div class="logo">
-            <a href="index.html">
-                <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
-            </a>
-        </div>
+        <button class="admin-menu-toggle" id="adminMenuToggle" type="button"
+                aria-label="Toggle navigation" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-        <nav class="navigation" id="adminNavigation">
-            <a href="index.html">View Website</a>
+        <nav class="admin-navigation" id="adminNavigation">
+            <a href="index.html" target="_blank" rel="noopener">View Website</a>
             <a href="#dashboard" class="active">Dashboard</a>
             <a href="#management">Management</a>
         </nav>
 
         <div class="admin-header-actions">
-
-            <span class="admin-status">
-                <span class="status-indicator"></span>
+            <div class="admin-status">
+                <span class="status-dot"></span>
                 ADMIN PORTAL
-            </span>
-
-            <button class="admin-profile-button" type="button" aria-label="Admin profile">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="8" r="3.5"></circle>
-                    <path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5"></path>
-                </svg>
-            </button>
-
-            <button class="menu-toggle" id="adminMenuToggle" aria-label="Toggle navigation" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-
-        </div>
-
-    </header>
-
-    <main>
-
-        <!-- DASHBOARD HERO -->
-
-        <section class="admin-hero" id="dashboard">
-
-            <div class="admin-hero-pattern"></div>
-
-            <div class="admin-hero-content">
-
-                <div class="admin-breadcrumb">
-                    <span>HSN PHILIPPINES</span>
-                    <span class="breadcrumb-divider">/</span>
-                    <span>ADMINISTRATION</span>
-                </div>
-
-                <div class="admin-welcome">
-                    <div>
-                        <span class="admin-eyebrow">
-                            <span class="admin-eyebrow-line"></span>
-                            ADMINISTRATION CENTER
-                        </span>
-
-                        <h1>Welcome to the<br><span>Admin Portal.</span></h1>
-
-                        <p>
-                            Manage and oversee your HSN Philippines website
-                            through one centralized administration platform.
-                        </p>
-                    </div>
-
-                    <div class="admin-hero-mark">
-                        HSN<span>.</span>
-                    </div>
-                </div>
-
-                <div class="admin-hero-bottom">
-                    <span class="admin-live-dot"></span>
-                    ADMINISTRATIVE ENVIRONMENT
-                    <span class="admin-hero-line"></span>
-                    <span id="adminCurrentDate">LOADING DATE</span>
-                </div>
-
             </div>
 
-        </section>
+            <div class="admin-profile-wrapper" id="adminProfileWrapper">
+                <button class="admin-profile-button" id="adminProfileButton"
+                        type="button" aria-label="Admin profile"
+                        aria-expanded="false" aria-haspopup="true">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="8" r="3.5"></circle>
+                        <path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5"></path>
+                    </svg>
+                </button>
 
-        <!-- DASHBOARD CONTENT -->
-
-        <section class="admin-content" id="management">
-
-            <div class="admin-section-heading">
-
-                <div>
-                    <span class="admin-section-label">OVERVIEW</span>
-                    <h2>Dashboard <span>Overview.</span></h2>
-                    <p>Access your website management tools and administrative sections.</p>
-                </div>
-
-                <div class="dashboard-indicator">
-                    <span></span>
-                    SYSTEM OVERVIEW
-                </div>
-
-            </div>
-
-            <!-- STATISTICS -->
-
-            <div class="admin-stats-grid">
-
-                <article class="admin-stat-card">
-                    <div class="stat-card-top">
-                        <span class="stat-label">WEBSITE STATUS</span>
-                        <span class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M3 12h4l3-8 4 16 3-8h4"></path>
-                            </svg>
-                        </span>
+                <div class="admin-profile-dropdown" id="adminProfileDropdown">
+                    <div class="profile-dropdown-heading">
+                        <div class="profile-avatar" id="profileAvatar">A</div>
+                        <div class="profile-account-details">
+                            <strong id="profileFullName">Administrator</strong>
+                            <span id="profileEmail">Loading account...</span>
+                        </div>
                     </div>
 
-                    <h3>Active</h3>
-                    <p>Website availability</p>
-
-                    <div class="stat-card-footer">
-                        <span class="stat-dot"></span>
-                        CURRENTLY ONLINE
+                    <div class="profile-role-label">
+                        <span class="status-dot"></span>
+                        ADMINISTRATOR ACCOUNT
                     </div>
-                </article>
 
-                <article class="admin-stat-card">
-                    <div class="stat-card-top">
-                        <span class="stat-label">BRAND PARTNERS</span>
-                        <span class="stat-icon">
+                    <div class="profile-dropdown-divider"></div>
+
+                    <button type="button" class="profile-menu-item" id="openAddAdmin">
+                        <span class="profile-menu-icon">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M20 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                <path d="M19 8v6M16 11h6"></path>
                             </svg>
                         </span>
-                    </div>
+                        <span>
+                            <strong>Add New Admin</strong>
+                            <small>Create another administrator account</small>
+                        </span>
+                    </button>
 
-                    <h3>13</h3>
-                    <p>Listed brand partners</p>
-
-                    <div class="stat-card-footer">
-                        <span class="stat-dot"></span>
-                        PARTNER DIRECTORY
-                    </div>
-                </article>
-
-                <article class="admin-stat-card">
-                    <div class="stat-card-top">
-                        <span class="stat-label">CONTENT MANAGEMENT</span>
-                        <span class="stat-icon">
+                    <button type="button" class="profile-menu-item" id="openEditPassword">
+                        <span class="profile-menu-icon">
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M4 4h16v16H4z"></path>
-                                <path d="M8 9h8M8 13h8M8 17h5"></path>
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                <path d="M12 15v2"></path>
                             </svg>
                         </span>
-                    </div>
+                        <span>
+                            <strong>Edit Password</strong>
+                            <small>Update your account password</small>
+                        </span>
+                    </button>
 
-                    <h3>Manage</h3>
-                    <p>Website content and pages</p>
+                    <div class="profile-dropdown-divider"></div>
 
-                    <div class="stat-card-footer">
-                        <span class="stat-dot"></span>
-                        ADMIN TOOLS
-                    </div>
-                </article>
-
-            </div>
-
-            <!-- MANAGEMENT MODULES -->
-
-            <div class="admin-module-heading">
-                <div>
-                    <span class="admin-section-label">ADMINISTRATION</span>
-                    <h2>Management <span>Modules.</span></h2>
+                    <button type="button" class="profile-menu-item logout-menu-item" id="adminLogout">
+                        <span class="profile-menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M10 17l5-5-5-5"></path>
+                                <path d="M15 12H3"></path>
+                                <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"></path>
+                            </svg>
+                        </span>
+                        <span>
+                            <strong>Log Out</strong>
+                            <small>Sign out of your account</small>
+                        </span>
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
+</header>
 
-            <div class="admin-modules-grid">
+<main class="admin-main">
 
-                <a href="clients.html" class="admin-module-card">
-                    <div class="module-icon">
+    <section class="admin-hero" id="dashboard">
+        <div class="admin-hero-content">
+            <div class="admin-eyebrow">
+                <span></span>
+                MANAGEMENT CONSOLE
+            </div>
+
+            <h1>Welcome to the <span>Admin Portal.</span></h1>
+            <p>Manage your website, oversee content, and maintain your digital operations from one central workspace.</p>
+
+            <div class="admin-date">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                    <path d="M16 3v4M8 3v4M3 10h18"></path>
+                </svg>
+                <span id="adminCurrentDate">LOADING DATE...</span>
+            </div>
+        </div>
+
+        <div class="admin-hero-decoration" aria-hidden="true">
+            <div class="hero-decoration-circle"></div>
+            <div class="hero-decoration-line"></div>
+            <span>HSN</span>
+        </div>
+    </section>
+
+    <section class="admin-content" id="management">
+
+        <div class="admin-section-heading">
+            <div>
+                <span class="section-kicker">CONTROL CENTER</span>
+                <h2>Dashboard Overview</h2>
+                <p>Quick access to your website management tools.</p>
+            </div>
+            <div class="dashboard-status">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
+        </div>
+
+        <div class="admin-stats-grid">
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">WEBSITE STATUS</span>
+                    <span class="stat-icon stat-icon-green">
                         <svg viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                        </svg>
-                    </div>
-
-                    <span class="module-number">01 / DIRECTORY</span>
-                    <h3>Brand Partners</h3>
-                    <p>View and manage the HSN brand partner directory.</p>
-
-                    <span class="module-link">OPEN MODULE <span>↗</span></span>
-                </a>
-
-                <a href="services.html" class="admin-module-card">
-                    <div class="module-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"></path>
-                        </svg>
-                    </div>
-
-                    <span class="module-number">02 / OPERATIONS</span>
-                    <h3>Services</h3>
-                    <p>Access the HSN services and support information.</p>
-
-                    <span class="module-link">OPEN MODULE <span>↗</span></span>
-                </a>
-
-                <a href="dps.html" class="admin-module-card">
-                    <div class="module-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M12 3 4.5 6v5.5c0 4.5 3.2 7.5 7.5 9.5 4.3-2 7.5-5 7.5-9.5V6L12 3Z"></path>
+                            <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"></path>
                             <path d="m9 12 2 2 4-4"></path>
                         </svg>
-                    </div>
-
-                    <span class="module-number">03 / COMPLIANCE</span>
-                    <h3>Data Privacy</h3>
-                    <p>Review the company's data privacy statement.</p>
-
-                    <span class="module-link">OPEN MODULE <span>↗</span></span>
-                </a>
-
-                <a href="index.html#announcements" class="admin-module-card">
-                    <div class="module-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-                            <path d="M10 21h4"></path>
-                        </svg>
-                    </div>
-
-                    <span class="module-number">04 / COMMUNICATIONS</span>
-                    <h3>Announcements</h3>
-                    <p>Access the website announcements section.</p>
-
-                    <span class="module-link">OPEN MODULE <span>↗</span></span>
-                </a>
-
-                <a href="index.html#careers" class="admin-module-card">
-                    <div class="module-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="7" width="18" height="14" rx="2"></rect>
-                            <path d="M8 7V4h8v3M3 12h18M10 12v2h4v-2"></path>
-                        </svg>
-                    </div>
-
-                    <span class="module-number">05 / PEOPLE</span>
-                    <h3>Careers</h3>
-                    <p>Access career and recruitment information.</p>
-
-                    <span class="module-link">OPEN MODULE <span>↗</span></span>
-                </a>
-
-                <a href="index.html" class="admin-module-card">
-                    <div class="module-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M3 11 12 3l9 8"></path>
-                            <path d="M5 10v10h14V10M9 20v-6h6v6"></path>
-                        </svg>
-                    </div>
-
-                    <span class="module-number">06 / WEBSITE</span>
-                    <h3>Homepage</h3>
-                    <p>Return to the public-facing HSN website.</p>
-
-                    <span class="module-link">VISIT WEBSITE <span>↗</span></span>
-                </a>
-
-            </div>
-
-            <!-- NOTICE -->
-
-            <div class="admin-notice">
-                <div class="notice-icon">i</div>
-
-                <div>
-                    <h3>Administration Workspace</h3>
-                    <p>
-                        This dashboard is currently a front-end interface.
-                        Content editing, user permissions, and database
-                        operations will be connected in the next development phase.
-                    </p>
+                    </span>
                 </div>
-            </div>
+                <h3>Active</h3>
+                <p>Your website is operational</p>
+            </article>
 
-        </section>
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">BRAND PARTNERS</span>
+                    <span class="stat-icon stat-icon-dark">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M20 8v6M17 11h6"></path>
+                        </svg>
+                    </span>
+                </div>
+                <h3>13</h3>
+                <p>Registered brand partners</p>
+            </article>
 
-    </main>
-
-    <!-- FOOTER -->
-
-    <footer class="hsn-footer">
-
-        <div class="hsn-footer-container">
-
-            <div class="hsn-footer-brand">
-                <a href="index.html" class="hsn-footer-logo">
-                    <img src="images/hsn.jpg" alt="HSN Philippines Logo">
-                </a>
-            </div>
-
-            <div class="hsn-footer-column">
-                <h3>Company</h3>
-                <a href="about.html">About Us</a>
-                <a href="services.html">Services</a>
-            </div>
-
-            <div class="hsn-footer-column">
-                <h3>Quick Links</h3>
-                <a href="clients.html">Clients</a>
-                <a href="index.html#announcements">Announcements</a>
-                <a href="dps.html">Data Privacy Statement</a>
-            </div>
-
-            <div class="hsn-footer-column">
-                <h3>Support</h3>
-                <a href="index.html#location">Location</a>
-                <a href="index.html#careers">Careers</a>
-                <a href="index.html">Contact Us</a>
-            </div>
-
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">CONTENT MANAGEMENT</span>
+                    <span class="stat-icon stat-icon-light">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
+                        </svg>
+                    </span>
+                </div>
+                <h3>Manage</h3>
+                <p>Update your website content</p>
+            </article>
         </div>
 
-        <div class="hsn-footer-bottom">
-            <div class="hsn-footer-bottom-inner">
-                <p>Copyright © 2021 HSN - All rights reserved.</p>
-                <a href="dps.html">Data Privacy Statement</a>
+        <div class="admin-section-heading module-heading">
+            <div>
+                <span class="section-kicker">WEBSITE OPERATIONS</span>
+                <h2>Management Modules</h2>
+                <p>Select a module to manage its content and settings.</p>
             </div>
         </div>
 
-    </footer>
+        <div class="admin-modules-grid">
 
-    <script src="admin.js"></script>
+            <a href="clients.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M20 8v6M17 11h6"></path>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">01 / MODULE</span>
+                    <h3>Clients</h3>
+                    <p>Manage client information and brand partners.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+            <a href="services.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"></path>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">02 / MODULE</span>
+                    <h3>Services</h3>
+                    <p>Manage the services presented on your website.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+            <a href="dps.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                        <path d="M7 8h10M7 12h10M7 16h6"></path>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">03 / MODULE</span>
+                    <h3>DPS</h3>
+                    <p>Manage your DPS content and related information.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+            <a href="index.html#announcements" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="m3 11 18-5v12L3 13v-2z"></path>
+                        <path d="M11.6 14.4 13 21H8l-2-8"></path>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">04 / MODULE</span>
+                    <h3>Announcements</h3>
+                    <p>Manage company news and announcements.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+            <a href="index.html#careers" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="7" width="18" height="14" rx="2"></rect>
+                        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">05 / MODULE</span>
+                    <h3>Careers</h3>
+                    <p>Manage career opportunities and job listings.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+            <a href="index.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                        <path d="M3 9h18M8 4v5M16 4v5"></path>
+                    </svg>
+                </div>
+                <div class="module-card-content">
+                    <span class="module-number">06 / MODULE</span>
+                    <h3>Website Preview</h3>
+                    <p>Open the public website and review its presentation.</p>
+                </div>
+                <span class="module-arrow">↗</span>
+            </a>
+
+        </div>
+
+        <div class="admin-notice">
+            <div class="notice-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 11v5M12 8h.01"></path>
+                </svg>
+            </div>
+            <div>
+                <strong>Administrator Access</strong>
+                <p>Admin accounts are managed through Supabase Authentication and the profiles database. Only verified administrator roles can access this dashboard.</p>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<footer class="admin-footer">
+    <span>© <span id="adminYear"></span> HSN Philippines. All rights reserved.</span>
+    <span>ADMINISTRATION PORTAL</span>
+</footer>
+
+
+<!-- ADD ADMIN MODAL -->
+<div class="admin-modal-overlay" id="addAdminModal" aria-hidden="true">
+    <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="addAdminTitle">
+        <div class="admin-modal-header">
+            <div>
+                <span class="modal-kicker">USER MANAGEMENT</span>
+                <h2 id="addAdminTitle">Add New Admin</h2>
+                <p>Create a new administrator account with full dashboard access.</p>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="addAdminModal" aria-label="Close">×</button>
+        </div>
+
+        <form id="addAdminForm">
+            <label for="newAdminName">Full Name</label>
+            <input type="text" id="newAdminName" placeholder="Enter full name" required maxlength="100">
+
+            <label for="newAdminEmail">Email Address</label>
+            <input type="email" id="newAdminEmail" placeholder="Enter email address" required maxlength="254">
+
+            <label for="newAdminPassword">Temporary Password</label>
+            <div class="password-input-wrap">
+                <input type="password" id="newAdminPassword" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+                <button type="button" class="password-visibility" data-toggle-password="newAdminPassword">SHOW</button>
+            </div>
+
+            <label for="confirmNewAdminPassword">Confirm Password</label>
+            <div class="password-input-wrap">
+                <input type="password" id="confirmNewAdminPassword" placeholder="Confirm password" required minlength="8" autocomplete="new-password">
+                <button type="button" class="password-visibility" data-toggle-password="confirmNewAdminPassword">SHOW</button>
+            </div>
+
+            <div class="admin-form-message" id="addAdminMessage" role="status"></div>
+
+            <button type="submit" class="admin-submit-button" id="createAdminButton">
+                CREATE ADMIN ACCOUNT
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- EDIT PASSWORD MODAL -->
+<div class="admin-modal-overlay" id="editPasswordModal" aria-hidden="true">
+    <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="editPasswordTitle">
+        <div class="admin-modal-header">
+            <div>
+                <span class="modal-kicker">ACCOUNT SECURITY</span>
+                <h2 id="editPasswordTitle">Edit Password</h2>
+                <p>Verify your current password before setting a new one.</p>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="editPasswordModal" aria-label="Close">×</button>
+        </div>
+
+        <form id="editPasswordForm">
+            <label for="currentPassword">Current Password</label>
+            <div class="password-input-wrap">
+                <input type="password" id="currentPassword" required autocomplete="current-password" placeholder="Enter current password">
+                <button type="button" class="password-visibility" data-toggle-password="currentPassword">SHOW</button>
+            </div>
+
+            <label for="newPassword">New Password</label>
+            <div class="password-input-wrap">
+                <input type="password" id="newPassword" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+                <button type="button" class="password-visibility" data-toggle-password="newPassword">SHOW</button>
+            </div>
+
+            <label for="confirmNewPassword">Confirm New Password</label>
+            <div class="password-input-wrap">
+                <input type="password" id="confirmNewPassword" required minlength="8" autocomplete="new-password" placeholder="Confirm new password">
+                <button type="button" class="password-visibility" data-toggle-password="confirmNewPassword">SHOW</button>
+            </div>
+
+            <div class="admin-form-message" id="editPasswordMessage" role="status"></div>
+
+            <button type="submit" class="admin-submit-button" id="updatePasswordButton">
+                UPDATE PASSWORD
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
 
 </body>
 </html>
