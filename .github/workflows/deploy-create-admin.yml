@@ -36,4 +36,5 @@ jobs:
         run: |
           supabase functions deploy create-admin \
             --project-ref "$SUPABASE_PROJECT_ID" \
-            --use-api
+            --use-api \
+            --yes
