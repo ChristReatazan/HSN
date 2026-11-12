@@ -73,7 +73,7 @@ const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
 // Change this to your actual admin dashboard filename.
-const ADMIN_DASHBOARD_URL = "YOUR_ADMIN_DASHBOARD_FILENAME.html";
+const ADMIN_DASHBOARD_URL = "admin.html";
 
 let supabaseClient = null;
 
