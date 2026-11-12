@@ -1,83 +1,122 @@
 
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async () => {
+    "use strict";
+
+    /* =========================================
+       SUPABASE CONFIGURATION
+    ========================================= */
+
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
-    const { createClient } = window.supabase;
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
-    const supabase = createClient(
+    const supabase = window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY
     );
 
-    const menuToggle = document.getElementById("adminMenuToggle");
-    const navigation = document.getElementById("adminNavigation");
-    const currentDate = document.getElementById("adminCurrentDate");
-    const adminYear = document.getElementById("adminYear");
+    const CAREERS_TABLE = "careers";
 
-    const profileButton = document.getElementById("adminProfileButton");
-    const profileDropdown = document.getElementById("adminProfileDropdown");
-    const profileAvatar = document.getElementById("profileAvatar");
-    const profileFullName = document.getElementById("profileFullName");
-    const profileEmail = document.getElementById("profileEmail");
+    /* =========================================
+       ELEMENTS
+    ========================================= */
 
-    const addAdminModal = document.getElementById("addAdminModal");
-    const editPasswordModal = document.getElementById("editPasswordModal");
+    const adminName = document.getElementById("adminName");
+    const adminAvatar = document.getElementById("adminAvatar");
 
-    const addAdminForm = document.getElementById("addAdminForm");
-    const editPasswordForm = document.getElementById("editPasswordForm");
+    const logoutButton = document.getElementById("logoutButton");
+    const footerLogout = document.getElementById("footerLogout");
 
-    const addAdminMessage = document.getElementById("addAdminMessage");
-    const editPasswordMessage = document.getElementById("editPasswordMessage");
+    const menuToggle = document.getElementById("menuToggle");
+    const mainNavigation = document.getElementById("mainNavigation");
 
-    const createAdminButton = document.getElementById("createAdminButton");
-    const updatePasswordButton = document.getElementById("updatePasswordButton");
+    const totalCareers = document.getElementById("totalCareers");
+    const publishedCareers = document.getElementById("publishedCareers");
+    const draftCareers = document.getElementById("draftCareers");
 
-    let currentUser = null;
-    let currentProfile = null;
+    const careerTableBody = document.getElementById("careerTableBody");
+    const careerMessage = document.getElementById("careerMessage");
 
-    function showMessage(element, message, type = "error") {
-        if (!element) return;
+    const careerSearch = document.getElementById("careerSearch");
+    const careerFilter = document.getElementById("careerFilter");
+    const careerResultCount = document.getElementById("careerResultCount");
 
-        element.textContent = message;
-        element.style.display = "block";
-        element.style.color = type === "success" ? "#15803d" : "#dc2626";
+    const addCareerButton = document.getElementById("addCareerButton");
+    const refreshCareersButton = document.getElementById("refreshCareers");
+
+    const careerModal = document.getElementById("careerModal");
+    const careerModalTitle = document.getElementById("careerModalTitle");
+    const closeCareerModal = document.getElementById("closeCareerModal");
+    const cancelCareerButton = document.getElementById("cancelCareerButton");
+
+    const careerForm = document.getElementById("careerForm");
+    const careerFormMessage = document.getElementById("careerFormMessage");
+    const saveCareerButton = document.getElementById("saveCareerButton");
+
+    const careerId = document.getElementById("careerId");
+    const careerTitle = document.getElementById("careerTitle");
+    const careerDepartment = document.getElementById("careerDepartment");
+    const careerLocation = document.getElementById("careerLocation");
+    const careerEmploymentType = document.getElementById("careerEmploymentType");
+    const careerDescription = document.getElementById("careerDescription");
+    const careerRequirements = document.getElementById("careerRequirements");
+    const careerPublished = document.getElementById("careerPublished");
+
+    const deleteModal = document.getElementById("deleteModal");
+    const cancelDeleteButton = document.getElementById("cancelDeleteButton");
+    const confirmDeleteButton = document.getElementById("confirmDeleteButton");
+
+    const adminCurrentDate = document.getElementById("adminCurrentDate");
+
+    /* =========================================
+       STATE
+    ========================================= */
+
+    let careers = [];
+    let pendingDeleteId = null;
+    let isSaving = false;
+
+    /* =========================================
+       HELPERS
+    ========================================= */
+
+    function showCareerMessage(message, type = "info") {
+        if (!careerMessage) return;
+
+        careerMessage.textContent = message;
+        careerMessage.className = `career-message ${type}`;
+
+        if (type !== "error") {
+            window.setTimeout(() => {
+                careerMessage.className = "career-message";
+                careerMessage.textContent = "";
+            }, 5000);
+        }
     }
 
-    function clearMessage(element) {
-        if (!element) return;
-
-        element.textContent = "";
-        element.style.display = "none";
+    function showFormMessage(message, type = "error") {
+        careerFormMessage.textContent = message;
+        careerFormMessage.className = `career-form-message ${type}`;
     }
 
-    function openModal(modal) {
-        if (!modal) return;
-
-        modal.classList.add("active");
-        modal.setAttribute("aria-hidden", "false");
+    function clearFormMessage() {
+        careerFormMessage.textContent = "";
+        careerFormMessage.className = "career-form-message";
     }
 
-    function closeModal(modal) {
-        if (!modal) return;
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => {
+            const entities = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            };
 
-        modal.classList.remove("active");
-        modal.setAttribute("aria-hidden", "true");
-    }
-
-    function closeProfileDropdown() {
-        if (!profileDropdown || !profileButton) return;
-
-        profileDropdown.classList.remove("show");
-        profileButton.setAttribute("aria-expanded", "false");
-    }
-
-    function toggleProfileDropdown() {
-        if (!profileDropdown || !profileButton) return;
-
-        const isOpen = profileDropdown.classList.toggle("show");
-
-        profileButton.setAttribute("aria-expanded", String(isOpen));
+            return entities[character];
+        });
     }
 
     function setButtonLoading(button, loading, originalText) {
@@ -87,410 +126,590 @@ document.addEventListener("DOMContentLoaded", async function () {
         button.textContent = loading ? "PLEASE WAIT..." : originalText;
     }
 
-    function redirectToLogin() {
-        window.location.href = "index.html";
+    function openModal(modal) {
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
     }
 
-    // DATE AND FOOTER
-    if (currentDate) {
-        currentDate.textContent = new Intl.DateTimeFormat("en-PH", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        }).format(new Date()).toUpperCase();
+    function closeModal(modal) {
+        modal.classList.remove("active");
+        modal.setAttribute("aria-hidden", "true");
+
+        if (
+            !careerModal.classList.contains("active") &&
+            !deleteModal.classList.contains("active")
+        ) {
+            document.body.style.overflow = "";
+        }
     }
 
-    if (adminYear) {
-        adminYear.textContent = new Date().getFullYear();
+    function updateCurrentDate() {
+        if (!adminCurrentDate) return;
+
+        adminCurrentDate.textContent =
+            new Intl.DateTimeFormat("en-PH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            }).format(new Date()).toUpperCase();
     }
 
-    // MOBILE NAVIGATION
-    if (menuToggle && navigation) {
-        menuToggle.addEventListener("click", function () {
-            const isOpen = navigation.classList.toggle("open");
+    /* =========================================
+       AUTHENTICATION AND ADMIN VERIFICATION
+    ========================================= */
+
+    async function verifyAdmin() {
+        const {
+            data: { session },
+            error: sessionError
+        } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+            window.location.replace("index.html");
+            return false;
+        }
+
+        const {
+            data: profile,
+            error: profileError
+        } = await supabase
+            .from("profiles")
+            .select("id, full_name, role")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+        if (profileError || !profile || profile.role !== "admin") {
+            await supabase.auth.signOut();
+            window.location.replace("index.html");
+            return false;
+        }
+
+        const displayName =
+            profile.full_name ||
+            session.user.user_metadata?.full_name ||
+            session.user.email ||
+            "Administrator";
+
+        adminName.textContent = displayName;
+        adminAvatar.textContent = displayName.charAt(0).toUpperCase();
+
+        return true;
+    }
+
+    async function logout() {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            alert("Unable to sign out. Please try again.");
+            return;
+        }
+
+        window.location.replace("index.html");
+    }
+
+    /* =========================================
+       NAVIGATION
+    ========================================= */
+
+    if (menuToggle && mainNavigation) {
+        menuToggle.addEventListener("click", () => {
+            const isOpen = mainNavigation.classList.toggle("open");
 
             menuToggle.setAttribute("aria-expanded", String(isOpen));
         });
 
-        navigation.querySelectorAll("a").forEach(function (link) {
-            link.addEventListener("click", function () {
-                navigation.classList.remove("open");
+        mainNavigation.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", () => {
+                mainNavigation.classList.remove("open");
                 menuToggle.setAttribute("aria-expanded", "false");
             });
         });
     }
 
-    // VERIFY CURRENT SESSION AND ADMIN ROLE
-    try {
-        const { data: sessionData, error: sessionError } =
-            await supabase.auth.getSession();
-
-        if (sessionError || !sessionData.session) {
-            redirectToLogin();
-            return;
-        }
-
-        currentUser = sessionData.session.user;
-
-        const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, full_name, role")
-            .eq("id", currentUser.id)
-            .single();
-
-        if (profileError || !profile || profile.role !== "admin") {
-            await supabase.auth.signOut();
-            redirectToLogin();
-            return;
-        }
-
-        currentProfile = profile;
-
-        // PROFILE INFORMATION
-        const fullName =
-            profile.full_name ||
-            currentUser.user_metadata?.full_name ||
-            "Administrator";
-
-        if (profileFullName) {
-            profileFullName.textContent = fullName;
-        }
-
-        if (profileEmail) {
-            profileEmail.textContent = currentUser.email || "";
-        }
-
-        if (profileAvatar) {
-            profileAvatar.textContent = fullName.charAt(0).toUpperCase();
-        }
-
-    } catch (error) {
-        console.error("Admin authentication error:", error);
-        redirectToLogin();
-        return;
-    }
-
-    // PROFILE DROPDOWN
-    if (profileButton) {
-        profileButton.addEventListener("click", function (event) {
-            event.stopPropagation();
-            toggleProfileDropdown();
-        });
-    }
-
-    document.addEventListener("click", function (event) {
-        if (
-            profileDropdown &&
-            profileButton &&
-            !profileDropdown.contains(event.target) &&
-            !profileButton.contains(event.target)
-        ) {
-            closeProfileDropdown();
-        }
+    logoutButton?.addEventListener("click", logout);
+    footerLogout?.addEventListener("click", event => {
+        event.preventDefault();
+        logout();
     });
 
-    // ADD ADMIN BUTTON
-    const openAddAdmin = document.getElementById("openAddAdmin");
+    /* =========================================
+       CAREER STATISTICS
+    ========================================= */
 
-    if (openAddAdmin) {
-        openAddAdmin.addEventListener("click", function () {
-            closeProfileDropdown();
+    function updateStatistics() {
+        const total = careers.length;
+        const published = careers.filter(item => item.is_published).length;
+        const drafts = total - published;
 
-            if (addAdminForm) {
-                addAdminForm.reset();
-            }
-
-            clearMessage(addAdminMessage);
-            openModal(addAdminModal);
-        });
+        totalCareers.textContent = total;
+        publishedCareers.textContent = published;
+        draftCareers.textContent = drafts;
     }
 
-    // ADD ADMIN SUBMISSION
-    if (addAdminForm) {
-        addAdminForm.addEventListener("submit", async function (event) {
-            event.preventDefault();
+    /* =========================================
+       CAREER TABLE
+    ========================================= */
 
-            clearMessage(addAdminMessage);
+    function getFilteredCareers() {
+        const searchTerm = careerSearch.value.trim().toLowerCase();
+        const filter = careerFilter.value;
 
-            const fullName = document.getElementById("newAdminName")?.value.trim();
-            const email = document.getElementById("newAdminEmail")?.value.trim();
-            const password = document.getElementById("newAdminPassword")?.value;
-            const confirmPassword =
-                document.getElementById("confirmNewAdminPassword")?.value;
-
-            if (!fullName || !email || !password || !confirmPassword) {
-                showMessage(addAdminMessage, "Please complete all fields.");
-                return;
-            }
-
-            if (password.length < 8) {
-                showMessage(
-                    addAdminMessage,
-                    "Password must contain at least 8 characters."
-                );
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                showMessage(addAdminMessage, "Passwords do not match.");
-                return;
-            }
-
-            setButtonLoading(createAdminButton, true, "CREATE ADMIN");
-
-            try {
-                const { data, error } = await supabase.functions.invoke(
-                    "create-admin",
-                    {
-                        body: {
-                            fullName: fullName,
-                            email: email,
-                            password: password
-                        }
-                    }
-                );
-
-                if (error) {
-                    let message = error.message || "Unable to create admin.";
-
-                    if (error.context && typeof error.context.json === "function") {
-                        try {
-                            const response = await error.context.json();
-                            message = response.error || response.message || message;
-                        } catch (_) {
-                            // Use the original error message.
-                        }
-                    }
-
-                    throw new Error(message);
-                }
-
-                if (data?.error) {
-                    throw new Error(data.error);
-                }
-
-                showMessage(
-                    addAdminMessage,
-                    "New administrator created successfully.",
-                    "success"
-                );
-
-                addAdminForm.reset();
-
-                setTimeout(function () {
-                    closeModal(addAdminModal);
-                    clearMessage(addAdminMessage);
-                }, 1600);
-
-            } catch (error) {
-                console.error("Create admin error:", error);
-
-                showMessage(
-                    addAdminMessage,
-                    error.message || "An unexpected error occurred."
-                );
-
-            } finally {
-                setButtonLoading(createAdminButton, false, "CREATE ADMIN");
-            }
-        });
-    }
-
-    // EDIT PASSWORD BUTTON
-    const openEditPassword = document.getElementById("openEditPassword");
-
-    if (openEditPassword) {
-        openEditPassword.addEventListener("click", function () {
-            closeProfileDropdown();
-
-            if (editPasswordForm) {
-                editPasswordForm.reset();
-            }
-
-            clearMessage(editPasswordMessage);
-            openModal(editPasswordModal);
-        });
-    }
-
-    // EDIT PASSWORD SUBMISSION
-    if (editPasswordForm) {
-        editPasswordForm.addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            clearMessage(editPasswordMessage);
-
-            const currentPassword =
-                document.getElementById("currentPassword")?.value;
-
-            const newPassword =
-                document.getElementById("newPassword")?.value;
-
-            const confirmPassword =
-                document.getElementById("confirmNewPassword")?.value;
-
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showMessage(editPasswordMessage, "Please complete all fields.");
-                return;
-            }
-
-            if (newPassword.length < 8) {
-                showMessage(
-                    editPasswordMessage,
-                    "New password must contain at least 8 characters."
-                );
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                showMessage(editPasswordMessage, "New passwords do not match.");
-                return;
-            }
-
-            if (currentPassword === newPassword) {
-                showMessage(
-                    editPasswordMessage,
-                    "Your new password must be different from your current password."
-                );
-                return;
-            }
-
-            setButtonLoading(updatePasswordButton, true, "UPDATE PASSWORD");
-
-            let verificationClient = null;
-
-            try {
-                // Verify the current password using a separate temporary client.
-                // This avoids replacing the active administrator session.
-                verificationClient = createClient(
-                    SUPABASE_URL,
-                    SUPABASE_ANON_KEY,
-                    {
-                        auth: {
-                            persistSession: false,
-                            autoRefreshToken: false,
-                            detectSessionInUrl: false
-                        }
-                    }
-                );
-
-                const { error: verificationError } =
-                    await verificationClient.auth.signInWithPassword({
-                        email: currentUser.email,
-                        password: currentPassword
-                    });
-
-                if (verificationError) {
-                    throw new Error("Your current password is incorrect.");
-                }
-
-                const { error: updateError } = await supabase.auth.updateUser({
-                    password: newPassword
-                });
-
-                if (updateError) {
-                    throw updateError;
-                }
-
-                showMessage(
-                    editPasswordMessage,
-                    "Your password has been updated successfully.",
-                    "success"
-                );
-
-                editPasswordForm.reset();
-
-                setTimeout(function () {
-                    closeModal(editPasswordModal);
-                    clearMessage(editPasswordMessage);
-                }, 1600);
-
-            } catch (error) {
-                console.error("Password update error:", error);
-
-                showMessage(
-                    editPasswordMessage,
-                    error.message || "Unable to update password."
-                );
-
-            } finally {
-                if (verificationClient) {
-                    await verificationClient.auth.signOut();
-                }
-
-                setButtonLoading(
-                    updatePasswordButton,
-                    false,
-                    "UPDATE PASSWORD"
-                );
-            }
-        });
-    }
-
-    // LOG OUT
-    const logoutButton = document.getElementById("adminLogout");
-
-    if (logoutButton) {
-        logoutButton.addEventListener("click", async function () {
-            logoutButton.disabled = true;
-
-            try {
-                const { error } = await supabase.auth.signOut();
-
-                if (error) {
-                    throw error;
-                }
-
-                redirectToLogin();
-
-            } catch (error) {
-                console.error("Logout error:", error);
-
-                logoutButton.disabled = false;
-
-                alert("Unable to log out. Please try again.");
-            }
-        });
-    }
-
-    // MODAL CLOSE BUTTONS
-    document.querySelectorAll("[data-close-modal]").forEach(function (button) {
-        button.addEventListener("click", function () {
-            const modal = button.closest(".admin-modal-overlay");
-
-            if (modal) {
-                closeModal(modal);
-            }
-        });
-    });
-
-    // CLOSE MODAL WHEN CLICKING OUTSIDE
-    [addAdminModal, editPasswordModal].forEach(function (modal) {
-        if (!modal) return;
-
-        modal.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                closeModal(modal);
-            }
-        });
-    });
-
-    // PASSWORD VISIBILITY
-    document.querySelectorAll("[data-toggle-password]").forEach(function (button) {
-        button.addEventListener("click", function () {
-            const targetId = button.getAttribute("data-toggle-password");
-            const passwordInput = document.getElementById(targetId);
-
-            if (!passwordInput) return;
-
-            const isPassword = passwordInput.type === "password";
-
-            passwordInput.type = isPassword ? "text" : "password";
-
-            button.setAttribute(
-                "aria-label",
-                isPassword ? "Hide password" : "Show password"
+        return careers.filter(item => {
+            const matchesSearch = [
+                item.title,
+                item.department,
+                item.location,
+                item.employment_type
+            ].some(value =>
+                String(value || "").toLowerCase().includes(searchTerm)
             );
+
+            const matchesFilter =
+                filter === "all" ||
+                (filter === "published" && item.is_published) ||
+                (filter === "draft" && !item.is_published);
+
+            return matchesSearch && matchesFilter;
         });
+    }
+
+    function renderCareers() {
+        const filteredCareers = getFilteredCareers();
+
+        updateStatistics();
+
+        careerResultCount.textContent =
+            `${filteredCareers.length} position${filteredCareers.length === 1 ? "" : "s"}`;
+
+        if (filteredCareers.length === 0) {
+            careerTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="career-empty">
+                        No career positions found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        careerTableBody.innerHTML = filteredCareers.map(item => {
+            const status = item.is_published ? "published" : "draft";
+            const statusLabel = item.is_published ? "Published" : "Draft";
+
+            return `
+                <tr>
+                    <td>
+                        <span class="career-position-title">
+                            ${escapeHTML(item.title)}
+                        </span>
+                        <span class="career-position-subtitle">
+                            ${escapeHTML(item.id)}
+                        </span>
+                    </td>
+
+                    <td>${escapeHTML(item.department)}</td>
+                    <td>${escapeHTML(item.location)}</td>
+                    <td>${escapeHTML(item.employment_type)}</td>
+
+                    <td>
+                        <span class="career-status ${status}">
+                            ${statusLabel}
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="career-row-actions">
+
+                            <button
+                                type="button"
+                                data-action="edit"
+                                data-id="${escapeHTML(item.id)}"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                type="button"
+                                data-action="toggle"
+                                data-id="${escapeHTML(item.id)}"
+                            >
+                                ${item.is_published ? "Unpublish" : "Publish"}
+                            </button>
+
+                            <button
+                                type="button"
+                                class="delete-career-button"
+                                data-action="delete"
+                                data-id="${escapeHTML(item.id)}"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    /* =========================================
+       LOAD CAREERS
+    ========================================= */
+
+    async function loadCareers() {
+        careerTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="career-empty">
+                    Loading career positions...
+                </td>
+            </tr>
+        `;
+
+        const { data, error } = await supabase
+            .from(CAREERS_TABLE)
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Career loading error:", error);
+
+            careerTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="career-empty">
+                        Unable to load careers. Check your Supabase table
+                        and Row Level Security policies.
+                    </td>
+                </tr>
+            `;
+
+            showCareerMessage(
+                "Unable to load career records. Please check your database configuration.",
+                "error"
+            );
+
+            return;
+        }
+
+        careers = data || [];
+        renderCareers();
+    }
+
+    /* =========================================
+       OPEN ADD CAREER MODAL
+    ========================================= */
+
+    function resetCareerForm() {
+        careerForm.reset();
+        careerId.value = "";
+        careerPublished.checked = false;
+        clearFormMessage();
+    }
+
+    function openAddCareerModal() {
+        resetCareerForm();
+
+        careerModalTitle.textContent = "Add New Position";
+        saveCareerButton.textContent = "Save Position";
+
+        openModal(careerModal);
+        careerTitle.focus();
+    }
+
+    /* =========================================
+       OPEN EDIT CAREER MODAL
+    ========================================= */
+
+    function openEditCareerModal(id) {
+        const item = careers.find(career => career.id === id);
+
+        if (!item) return;
+
+        resetCareerForm();
+
+        careerId.value = item.id;
+        careerTitle.value = item.title || "";
+        careerDepartment.value = item.department || "";
+        careerLocation.value = item.location || "";
+        careerEmploymentType.value = item.employment_type || "";
+        careerDescription.value = item.description || "";
+        careerRequirements.value = item.requirements || "";
+        careerPublished.checked = Boolean(item.is_published);
+
+        careerModalTitle.textContent = "Edit Position";
+        saveCareerButton.textContent = "Update Position";
+
+        openModal(careerModal);
+    }
+
+    /* =========================================
+       SAVE CAREER
+    ========================================= */
+
+    async function saveCareer(event) {
+        event.preventDefault();
+
+        if (isSaving) return;
+
+        const title = careerTitle.value.trim();
+        const department = careerDepartment.value.trim();
+        const location = careerLocation.value.trim();
+        const employmentType = careerEmploymentType.value;
+        const description = careerDescription.value.trim();
+        const requirements = careerRequirements.value.trim();
+        const isPublished = careerPublished.checked;
+
+        if (
+            !title ||
+            !department ||
+            !location ||
+            !employmentType ||
+            !description
+        ) {
+            showFormMessage("Please complete all required fields.");
+            return;
+        }
+
+        const careerData = {
+            title,
+            department,
+            location,
+            employment_type: employmentType,
+            description,
+            requirements,
+            is_published: isPublished
+        };
+
+        isSaving = true;
+        setButtonLoading(saveCareerButton, true, "Save Position");
+
+        const existingId = careerId.value;
+
+        let result;
+
+        if (existingId) {
+            result = await supabase
+                .from(CAREERS_TABLE)
+                .update(careerData)
+                .eq("id", existingId)
+                .select()
+                .single();
+        } else {
+            result = await supabase
+                .from(CAREERS_TABLE)
+                .insert(careerData)
+                .select()
+                .single();
+        }
+
+        isSaving = false;
+        saveCareerButton.disabled = false;
+        saveCareerButton.textContent = existingId
+            ? "Update Position"
+            : "Save Position";
+
+        if (result.error) {
+            console.error("Career save error:", result.error);
+
+            showFormMessage(
+                result.error.message || "Unable to save this career position."
+            );
+
+            return;
+        }
+
+        closeModal(careerModal);
+        resetCareerForm();
+
+        showCareerMessage(
+            existingId
+                ? "Career position successfully updated."
+                : "New career position successfully created.",
+            "success"
+        );
+
+        await loadCareers();
+    }
+
+    /* =========================================
+       PUBLISH / UNPUBLISH
+    ========================================= */
+
+    async function toggleCareerStatus(id) {
+        const item = careers.find(career => career.id === id);
+
+        if (!item) return;
+
+        const nextStatus = !item.is_published;
+
+        const confirmed = window.confirm(
+            nextStatus
+                ? `Publish "${item.title}"? It will become available for public viewing.`
+                : `Unpublish "${item.title}"? It will no longer be available publicly.`
+        );
+
+        if (!confirmed) return;
+
+        const { error } = await supabase
+            .from(CAREERS_TABLE)
+            .update({ is_published: nextStatus })
+            .eq("id", id);
+
+        if (error) {
+            console.error("Career status update error:", error);
+
+            showCareerMessage(
+                "Unable to update the publication status.",
+                "error"
+            );
+
+            return;
+        }
+
+        showCareerMessage(
+            nextStatus
+                ? "Career position published successfully."
+                : "Career position unpublished successfully.",
+            "success"
+        );
+
+        await loadCareers();
+    }
+
+    /* =========================================
+       DELETE CAREER
+    ========================================= */
+
+    function openDeleteModal(id) {
+        pendingDeleteId = id;
+        openModal(deleteModal);
+    }
+
+    async function deleteCareer() {
+        if (!pendingDeleteId) return;
+
+        confirmDeleteButton.disabled = true;
+        confirmDeleteButton.textContent = "DELETING...";
+
+        const { error } = await supabase
+            .from(CAREERS_TABLE)
+            .delete()
+            .eq("id", pendingDeleteId);
+
+        confirmDeleteButton.disabled = false;
+        confirmDeleteButton.textContent = "Delete Position";
+
+        if (error) {
+            console.error("Career deletion error:", error);
+
+            closeModal(deleteModal);
+
+            showCareerMessage(
+                "Unable to delete this career position.",
+                "error"
+            );
+
+            pendingDeleteId = null;
+            return;
+        }
+
+        pendingDeleteId = null;
+        closeModal(deleteModal);
+
+        showCareerMessage(
+            "Career position deleted successfully.",
+            "success"
+        );
+
+        await loadCareers();
+    }
+
+    /* =========================================
+       EVENT LISTENERS
+    ========================================= */
+
+    addCareerButton.addEventListener("click", openAddCareerModal);
+
+    refreshCareersButton.addEventListener("click", loadCareers);
+
+    careerSearch.addEventListener("input", renderCareers);
+    careerFilter.addEventListener("change", renderCareers);
+
+    careerForm.addEventListener("submit", saveCareer);
+
+    closeCareerModal.addEventListener("click", () => {
+        closeModal(careerModal);
+    });
+
+    cancelCareerButton.addEventListener("click", () => {
+        closeModal(careerModal);
+    });
+
+    cancelDeleteButton.addEventListener("click", () => {
+        pendingDeleteId = null;
+        closeModal(deleteModal);
+    });
+
+    confirmDeleteButton.addEventListener("click", deleteCareer);
+
+    careerModal.addEventListener("click", event => {
+        if (event.target === careerModal) {
+            closeModal(careerModal);
+        }
+    });
+
+    deleteModal.addEventListener("click", event => {
+        if (event.target === deleteModal) {
+            pendingDeleteId = null;
+            closeModal(deleteModal);
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeModal(careerModal);
+            pendingDeleteId = null;
+            closeModal(deleteModal);
+        }
+    });
+
+    careerTableBody.addEventListener("click", event => {
+        const button = event.target.closest("button[data-action]");
+
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "edit") {
+            openEditCareerModal(id);
+        }
+
+        if (action === "toggle") {
+            toggleCareerStatus(id);
+        }
+
+        if (action === "delete") {
+            openDeleteModal(id);
+        }
+    });
+
+    /* =========================================
+       INITIALIZE ADMIN PAGE
+    ========================================= */
+
+    updateCurrentDate();
+
+    const authorized = await verifyAdmin();
+
+    if (!authorized) return;
+
+    await loadCareers();
+
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT" || !session) {
+            window.location.replace("index.html");
+        }
     });
 
 });
