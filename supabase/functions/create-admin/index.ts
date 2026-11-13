@@ -18,7 +18,9 @@ function response(data: unknown, status = 200) {
     });
 }
 
-Deno.serve(async request => {
+Deno.serve(async (request) => {
+    console.log("Create-admin request:", request.method);
+
     if (request.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
@@ -28,14 +30,26 @@ Deno.serve(async request => {
     }
 
     try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+        if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+            console.error("Missing required Supabase environment variables.");
+
+            return response({
+                error: "Server configuration is incomplete. Check the Edge Function secrets."
+            }, 500);
+        }
 
         const authorization = request.headers.get("Authorization");
 
         if (!authorization) {
-            return response({ error: "Unauthorized request." }, 401);
+            console.error("Missing Authorization header.");
+
+            return response({
+                error: "Unauthorized request."
+            }, 401);
         }
 
         const userClient = createClient(supabaseUrl, anonKey, {
@@ -52,8 +66,14 @@ Deno.serve(async request => {
         } = await userClient.auth.getUser();
 
         if (userError || !user) {
-            return response({ error: "Invalid user session." }, 401);
+            console.error("Authentication failed:", userError?.message);
+
+            return response({
+                error: "Invalid user session."
+            }, 401);
         }
+
+        console.log("Authenticated caller:", user.id);
 
         const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
@@ -64,17 +84,33 @@ Deno.serve(async request => {
                 .eq("id", user.id)
                 .maybeSingle();
 
-        if (
-            profileError ||
-            !currentProfile ||
-            currentProfile.role !== "admin"
-        ) {
+        if (profileError) {
+            console.error("Admin profile lookup failed:", profileError);
+
+            return response({
+                error: "Unable to verify administrator permissions."
+            }, 500);
+        }
+
+        if (!currentProfile || currentProfile.role !== "admin") {
+            console.error("User is not an administrator:", user.id);
+
             return response({
                 error: "Only authorized administrators can create admin accounts."
             }, 403);
         }
 
-        const body = await request.json();
+        console.log("Administrator verified.");
+
+        let body;
+
+        try {
+            body = await request.json();
+        } catch {
+            return response({
+                error: "Invalid request body."
+            }, 400);
+        }
 
         const fullName = String(body.full_name || "").trim();
         const email = String(body.email || "").trim().toLowerCase();
@@ -89,8 +125,12 @@ Deno.serve(async request => {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailPattern.test(email)) {
-            return response({ error: "Invalid email address." }, 400);
+            return response({
+                error: "Invalid email address."
+            }, 400);
         }
+
+        console.log("Creating administrator account for:", email);
 
         const {
             data: createdUser,
@@ -105,10 +145,15 @@ Deno.serve(async request => {
         });
 
         if (createError || !createdUser.user) {
+            console.error("Auth user creation failed:", createError);
+
             return response({
-                error: createError?.message || "Unable to create the administrator account."
+                error: createError?.message ||
+                    "Unable to create the administrator account."
             }, 400);
         }
+
+        console.log("Auth account created:", createdUser.user.id);
 
         const { error: insertProfileError } = await adminClient
             .from("profiles")
@@ -119,22 +164,40 @@ Deno.serve(async request => {
             });
 
         if (insertProfileError) {
-            await adminClient.auth.admin.deleteUser(createdUser.user.id);
+            console.error(
+                "Admin profile insertion failed:",
+                insertProfileError
+            );
+
+            const { error: rollbackError } =
+                await adminClient.auth.admin.deleteUser(
+                    createdUser.user.id
+                );
+
+            if (rollbackError) {
+                console.error("Account rollback failed:", rollbackError);
+            }
 
             return response({
-                error: "The Auth account was created, but the admin profile could not be saved. The account creation was rolled back."
+                error: "Unable to save the administrator profile.",
+                details: insertProfileError.message
             }, 500);
         }
+
+        console.log("Administrator profile saved successfully.");
 
         return response({
             success: true,
             message: "Administrator account created successfully."
         });
+
     } catch (error) {
-        console.error("Create admin function error:", error);
+        console.error("Unexpected create-admin error:", error);
 
         return response({
-            error: "An unexpected server error occurred."
+            error: error instanceof Error
+                ? error.message
+                : "An unexpected server error occurred."
         }, 500);
     }
 });
