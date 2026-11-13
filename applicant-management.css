@@ -1564,3 +1564,150 @@ button {
         padding: 14px 19px;
     }
 }
+
+
+/* =========================================
+   APPLICANT ACTION BUTTONS
+========================================= */
+
+.applicant-action-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.applicant-action-group button {
+    min-height: 33px;
+    padding: 0 11px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-applicant-button {
+    border: 1px solid #dce3ec;
+    background: #ffffff;
+    color: #263449;
+}
+
+.view-applicant-button:hover {
+    background: #172033;
+    border-color: #172033;
+    color: #ffffff;
+}
+
+.delete-applicant-button {
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+    background: #fff5f5;
+    color: #dc2626;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-applicant-button:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+.delete-applicant-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   PROFILE DELETE ACTION
+========================================= */
+
+.applicant-profile-delete {
+    display: flex;
+    justify-content: flex-end;
+    padding: 5px 0 10px;
+}
+
+.applicant-profile-delete .delete-applicant-button {
+    min-height: 42px;
+    padding: 0 18px;
+}
+
+/* =========================================
+   STATUS UPDATE CONTROLS
+========================================= */
+
+.status-update-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-update-controls select {
+    flex: 1;
+    min-width: 0;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #dce2e9;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #293548;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.status-update-controls select:focus {
+    border-color: #64748b;
+}
+
+.update-status-button {
+    min-height: 43px;
+    padding: 0 18px;
+    border: 1px solid #172033;
+    border-radius: 8px;
+    background: #172033;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.update-status-button:hover {
+    background: #2d3b52;
+}
+
+.update-status-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE ACTIONS
+========================================= */
+
+@media (max-width: 650px) {
+    .applicant-action-group {
+        flex-wrap: wrap;
+    }
+
+    .status-update-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .status-update-controls select,
+    .status-update-controls button {
+        width: 100%;
+    }
+}
+
