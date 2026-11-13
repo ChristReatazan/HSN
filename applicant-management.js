@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_oiJNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
+    const SUPABASE_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
     const supabase = window.supabase.createClient(
         SUPABASE_URL,
@@ -71,6 +71,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showToast(message, type = "success") {
         const container = document.getElementById("toastContainer");
+
+        if (!container) {
+            console[type === "error" ? "error" : "log"](message);
+            return;
+        }
+
         const toast = document.createElement("div");
 
         toast.className = `toast ${type}`;
@@ -159,55 +165,111 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     async function verifyAdmin() {
-        const {
-            data: { session },
-            error
-        } = await supabase.auth.getSession();
+        try {
+            const {
+                data: { session },
+                error: sessionError
+            } = await supabase.auth.getSession();
 
-        if (error || !session) {
-            window.location.href = "login.html";
+            if (sessionError) {
+                console.error("Session error:", sessionError);
+                showToast("Unable to verify your session. Please refresh the page.", "error");
+                return false;
+            }
+
+            if (!session) {
+                window.location.replace("login.html");
+                return false;
+            }
+
+            const {
+                data: profile,
+                error: profileError
+            } = await supabase
+                .from("profiles")
+                .select("id, full_name, role")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+            if (profileError) {
+                console.error("Admin profile verification error:", profileError);
+
+                showToast(
+                    "Unable to verify admin access. Please check your Supabase profiles SELECT policy.",
+                    "error"
+                );
+
+                return false;
+            }
+
+            if (!profile) {
+                console.error("No admin profile found for:", session.user.id);
+
+                await supabase.auth.signOut();
+                window.location.replace("login.html");
+
+                return false;
+            }
+
+            if (String(profile.role || "").toLowerCase() !== "admin") {
+                console.warn("Access denied. User role:", profile.role);
+
+                await supabase.auth.signOut();
+                window.location.replace("login.html");
+
+                return false;
+            }
+
+            currentAdmin = profile;
+
+            const adminName = profile.full_name || "Administrator";
+
+            const sidebarName = document.getElementById("sidebarAdminName");
+            const sidebarAvatar = document.getElementById("sidebarAvatar");
+
+            if (sidebarName) {
+                sidebarName.textContent = adminName;
+            }
+
+            if (sidebarAvatar) {
+                sidebarAvatar.textContent = getInitials(adminName);
+            }
+
+            console.log("Admin authentication successful.");
+
+            return true;
+
+        } catch (error) {
+            console.error("Authentication error:", error);
+
+            showToast(
+                "An unexpected authentication error occurred. Please refresh the page.",
+                "error"
+            );
+
             return false;
         }
-
-        const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, full_name, role")
-            .eq("id", session.user.id)
-            .single();
-
-        if (profileError || !profile || profile.role !== "admin") {
-            await supabase.auth.signOut();
-            window.location.href = "login.html";
-            return false;
-        }
-
-        currentAdmin = profile;
-
-        const adminName = profile.full_name || "Administrator";
-
-        document.getElementById("sidebarAdminName").textContent = adminName;
-        document.getElementById("sidebarAvatar").textContent = getInitials(adminName);
-
-        return true;
     }
 
     /* =========================================
        LOGOUT
     ========================================= */
 
-    logoutButton.addEventListener("click", async () => {
-        logoutButton.disabled = true;
+    if (logoutButton) {
+        logoutButton.addEventListener("click", async () => {
+            logoutButton.disabled = true;
 
-        const { error } = await supabase.auth.signOut();
+            const { error } = await supabase.auth.signOut();
 
-        if (error) {
-            showToast("Unable to sign out. Please try again.", "error");
-            logoutButton.disabled = false;
-            return;
-        }
+            if (error) {
+                showToast("Unable to sign out. Please try again.", "error");
+                logoutButton.disabled = false;
+                return;
+            }
 
-        window.location.href = "login.html";
-    });
+            window.location.replace("login.html");
+        });
+    }
 
     /* =========================================
        LOAD CAREER TITLES
@@ -720,7 +782,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         applicant.status = newStatus;
-
         activeApplicant = applicant;
 
         updateStatistics();
