@@ -2,8 +2,14 @@
 "use strict";
 
 /* =========================================
-   HSN PHILIPPINES - ADMIN DASHBOARD
-   SUPABASE CONNECTION
+   HSN PHILIPPINES
+   ADMIN DASHBOARD
+   CAREER + APPLICANT MANAGEMENT
+========================================= */
+
+
+/* =========================================
+   SUPABASE CONFIGURATION
 ========================================= */
 
 const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
@@ -21,53 +27,7 @@ const supabaseClient = window.supabase.createClient(
 
 
 /* =========================================
-   DOM ELEMENTS
-========================================= */
-
-const adminLoginPage = document.getElementById("adminLoginPage");
-const adminDashboard = document.getElementById("adminDashboard");
-
-const adminLoginForm = document.getElementById("adminLoginForm");
-const adminLoginButton = document.getElementById("adminLoginButton");
-const adminLoginMessage = document.getElementById("adminLoginMessage");
-
-const adminLogoutButton = document.getElementById("adminLogoutButton");
-const adminUserEmail = document.getElementById("adminUserEmail");
-
-const careerAdminTableBody = document.getElementById("careerAdminTableBody");
-const careerAdminSearch = document.getElementById("careerAdminSearch");
-const careerAdminFilter = document.getElementById("careerAdminFilter");
-
-const careerAdminModal = document.getElementById("careerAdminModal");
-const careerAdminForm = document.getElementById("careerAdminForm");
-const careerModalTitle = document.getElementById("careerModalTitle");
-
-const addCareerButton = document.getElementById("addCareerButton");
-const closeCareerAdminModal = document.getElementById("closeCareerAdminModal");
-const cancelCareerForm = document.getElementById("cancelCareerForm");
-const saveCareerButton = document.getElementById("saveCareerButton");
-
-const careerRecordId = document.getElementById("careerRecordId");
-const careerTitle = document.getElementById("careerTitle");
-const careerDepartment = document.getElementById("careerDepartment");
-const careerLocation = document.getElementById("careerLocation");
-const careerEmploymentType = document.getElementById("careerEmploymentType");
-const careerDescription = document.getElementById("careerDescription");
-const careerRequirements = document.getElementById("careerRequirements");
-const careerIsPublished = document.getElementById("careerIsPublished");
-const careerAdminMessage = document.getElementById("careerAdminMessage");
-
-const applicantsTableBody = document.getElementById("applicantsTableBody");
-const applicantSearch = document.getElementById("applicantSearch");
-const applicantStatusFilter = document.getElementById("applicantStatusFilter");
-const refreshApplicantsButton = document.getElementById("refreshApplicants");
-
-const toggleAdminSidebar = document.getElementById("toggleAdminSidebar");
-const adminSidebar = document.getElementById("adminSidebar");
-
-
-/* =========================================
-   APPLICATION STATE
+   GLOBAL VARIABLES
 ========================================= */
 
 let currentAdmin = null;
@@ -84,21 +44,65 @@ const APPLICATION_STATUSES = [
 
 
 /* =========================================
-   GENERAL HELPERS
+   DOM ELEMENTS
+========================================= */
+
+const $ = id => document.getElementById(id);
+
+const adminLoginPage = $("adminLoginPage");
+const adminDashboard = $("adminDashboard");
+
+const adminLoginForm = $("adminLoginForm");
+const adminLoginButton = $("adminLoginButton");
+const adminLoginMessage = $("adminLoginMessage");
+
+const adminLogoutButton = $("adminLogoutButton");
+const adminUserEmail = $("adminUserEmail");
+
+const careerAdminTableBody = $("careerAdminTableBody");
+const careerAdminSearch = $("careerAdminSearch");
+const careerAdminFilter = $("careerAdminFilter");
+
+const careerAdminModal = $("careerAdminModal");
+const careerAdminForm = $("careerAdminForm");
+const careerModalTitle = $("careerModalTitle");
+
+const addCareerButton = $("addCareerButton");
+const closeCareerAdminModal = $("closeCareerAdminModal");
+const cancelCareerForm = $("cancelCareerForm");
+const saveCareerButton = $("saveCareerButton");
+
+const careerRecordId = $("careerRecordId");
+const careerTitle = $("careerTitle");
+const careerDepartment = $("careerDepartment");
+const careerLocation = $("careerLocation");
+const careerEmploymentType = $("careerEmploymentType");
+const careerDescription = $("careerDescription");
+const careerRequirements = $("careerRequirements");
+const careerIsPublished = $("careerIsPublished");
+const careerAdminMessage = $("careerAdminMessage");
+
+const applicantsTableBody = $("applicantsTableBody");
+const applicantSearch = $("applicantSearch");
+const applicantStatusFilter = $("applicantStatusFilter");
+const refreshApplicantsButton = $("refreshApplicants");
+
+const adminSidebar = $("adminSidebar");
+const toggleAdminSidebar = $("toggleAdminSidebar");
+
+
+/* =========================================
+   HELPERS
 ========================================= */
 
 function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => {
-        const entities = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;"
-        };
-
-        return entities[character];
-    });
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
 }
 
 
@@ -118,20 +122,18 @@ function formatCurrency(value) {
 
 
 function formatDate(value) {
-    if (!value) {
-        return "—";
-    }
+    if (!value) return "—";
 
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
-        return "—";
-    }
+    if (Number.isNaN(date.getTime())) return "—";
 
-    return date.toLocaleDateString("en-PH", {
+    return date.toLocaleString("en-PH", {
         year: "numeric",
         month: "short",
-        day: "numeric"
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
     });
 }
 
@@ -152,7 +154,7 @@ function clearMessage(element) {
 }
 
 
-function setButtonLoading(button, loading, loadingText = "Please wait...") {
+function setLoading(button, loading, loadingText = "Please wait...") {
     if (!button) return;
 
     if (loading) {
@@ -161,14 +163,17 @@ function setButtonLoading(button, loading, loadingText = "Please wait...") {
         button.textContent = loadingText;
     } else {
         button.disabled = false;
-        button.textContent = button.dataset.originalText || button.textContent;
+        button.textContent =
+            button.dataset.originalText || button.textContent;
+
         delete button.dataset.originalText;
     }
 }
 
 
-function getErrorMessage(error) {
-    return error?.message || "Something went wrong. Please try again.";
+function displayError(error) {
+    console.error(error);
+    return error?.message || "An unexpected error occurred.";
 }
 
 
@@ -176,7 +181,63 @@ function getErrorMessage(error) {
    AUTHENTICATION
 ========================================= */
 
-async function checkAdminAccess() {
+function showLoginPage(message = "") {
+    if (adminLoginPage) adminLoginPage.hidden = false;
+    if (adminDashboard) adminDashboard.hidden = true;
+
+    if (message) {
+        showMessage(adminLoginMessage, message);
+    }
+}
+
+
+async function verifyAdmin(user) {
+    if (!user) return false;
+
+    const { data: profile, error } = await supabaseClient
+        .from(PROFILES_TABLE)
+        .select("id, role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    return profile?.role === "admin";
+}
+
+
+async function openAdminDashboard(user) {
+    const isAdmin = await verifyAdmin(user);
+
+    if (!isAdmin) {
+        await supabaseClient.auth.signOut();
+
+        showLoginPage(
+            "Access denied. Your account does not have administrator access."
+        );
+
+        return;
+    }
+
+    currentAdmin = user;
+
+    if (adminLoginPage) adminLoginPage.hidden = true;
+    if (adminDashboard) adminDashboard.hidden = false;
+
+    if (adminUserEmail) {
+        adminUserEmail.textContent = user.email || "Administrator";
+    }
+
+    await loadCareers();
+    await loadApplicants();
+
+    updateDashboardStatistics();
+}
+
+
+async function initializeAdmin() {
     try {
         const {
             data: { session },
@@ -190,78 +251,18 @@ async function checkAdminAccess() {
             return;
         }
 
-        const user = session.user;
-
-        const { data: profile, error: profileError } = await supabaseClient
-            .from(PROFILES_TABLE)
-            .select("id, role")
-            .eq("id", user.id)
-            .maybeSingle();
-
-        if (profileError) throw profileError;
-
-        if (!profile || profile.role !== "admin") {
-            await supabaseClient.auth.signOut();
-
-            showLoginPage(
-                "Access denied. This account does not have administrator permissions."
-            );
-
-            return;
-        }
-
-        currentAdmin = user;
-
-        showDashboard(user);
+        await openAdminDashboard(session.user);
 
     } catch (error) {
-        console.error("Admin access verification failed:", error);
-
-        showLoginPage(
-            "Unable to verify administrator access. Please try again."
-        );
+        console.error("Authentication error:", error);
+        showLoginPage(displayError(error));
     }
 }
 
 
-function showLoginPage(message = "") {
-    if (adminLoginPage) {
-        adminLoginPage.hidden = false;
-    }
-
-    if (adminDashboard) {
-        adminDashboard.hidden = true;
-    }
-
-    if (message) {
-        showMessage(adminLoginMessage, message);
-    }
-}
-
-
-async function showDashboard(user) {
-    currentAdmin = user;
-
-    if (adminLoginPage) {
-        adminLoginPage.hidden = true;
-    }
-
-    if (adminDashboard) {
-        adminDashboard.hidden = false;
-    }
-
-    if (adminUserEmail) {
-        adminUserEmail.textContent = user.email || "Administrator";
-    }
-
-    await Promise.all([
-        loadCareers(),
-        loadApplicants()
-    ]);
-
-    updateDashboardStatistics();
-}
-
+/* =========================================
+   LOGIN
+========================================= */
 
 if (adminLoginForm) {
     adminLoginForm.addEventListener("submit", async event => {
@@ -269,15 +270,18 @@ if (adminLoginForm) {
 
         clearMessage(adminLoginMessage);
 
-        const email = document.getElementById("adminEmail")?.value.trim();
-        const password = document.getElementById("adminPassword")?.value;
+        const email = $("adminEmail")?.value.trim();
+        const password = $("adminPassword")?.value;
 
         if (!email || !password) {
-            showMessage(adminLoginMessage, "Please enter your email and password.");
+            showMessage(
+                adminLoginMessage,
+                "Please enter your email and password."
+            );
             return;
         }
 
-        setButtonLoading(adminLoginButton, true, "Signing in...");
+        setLoading(adminLoginButton, true, "Signing in...");
 
         try {
             const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -287,50 +291,35 @@ if (adminLoginForm) {
 
             if (error) throw error;
 
-            if (!data.user) {
-                throw new Error("Unable to retrieve your account information.");
-            }
-
-            const { data: profile, error: profileError } = await supabaseClient
-                .from(PROFILES_TABLE)
-                .select("id, role")
-                .eq("id", data.user.id)
-                .maybeSingle();
-
-            if (profileError) throw profileError;
-
-            if (!profile || profile.role !== "admin") {
-                await supabaseClient.auth.signOut();
-
-                throw new Error(
-                    "Access denied. Your account is not registered as an administrator."
-                );
-            }
-
-            adminLoginForm.reset();
-
-            await showDashboard(data.user);
+            await openAdminDashboard(data.user);
 
         } catch (error) {
-            console.error("Login error:", error);
-            showMessage(adminLoginMessage, getErrorMessage(error));
+            console.error("Login failed:", error);
+
+            showMessage(
+                adminLoginMessage,
+                displayError(error)
+            );
+
         } finally {
-            setButtonLoading(adminLoginButton, false);
+            setLoading(adminLoginButton, false);
         }
     });
 }
 
 
+/* =========================================
+   LOGOUT
+========================================= */
+
 if (adminLogoutButton) {
     adminLogoutButton.addEventListener("click", async () => {
-        const confirmed = window.confirm("Are you sure you want to sign out?");
-
-        if (!confirmed) return;
+        if (!confirm("Are you sure you want to sign out?")) return;
 
         const { error } = await supabaseClient.auth.signOut();
 
         if (error) {
-            alert(getErrorMessage(error));
+            alert(displayError(error));
             return;
         }
 
@@ -353,7 +342,7 @@ async function loadCareers() {
     careerAdminTableBody.innerHTML = `
         <tr>
             <td colspan="6" class="table-message">
-                Loading career listings...
+                Loading positions...
             </td>
         </tr>
     `;
@@ -377,7 +366,7 @@ async function loadCareers() {
         careerAdminTableBody.innerHTML = `
             <tr>
                 <td colspan="6" class="table-message error">
-                    ${escapeHTML(getErrorMessage(error))}
+                    ${escapeHTML(displayError(error))}
                 </td>
             </tr>
         `;
@@ -388,52 +377,56 @@ async function loadCareers() {
 function renderCareers() {
     if (!careerAdminTableBody) return;
 
-    const searchTerm = careerAdminSearch?.value.trim().toLowerCase() || "";
-    const selectedFilter = careerAdminFilter?.value || "all";
+    const search = careerAdminSearch?.value.trim().toLowerCase() || "";
+    const filter = careerAdminFilter?.value || "all";
 
-    const filteredCareers = careersCache.filter(career => {
-        const searchableText = [
+    const filtered = careersCache.filter(career => {
+        const content = [
             career.title,
             career.department,
             career.location,
             career.employment_type
         ].join(" ").toLowerCase();
 
-        const matchesSearch = searchableText.includes(searchTerm);
+        const matchesSearch = content.includes(search);
 
         const matchesFilter =
-            selectedFilter === "all" ||
-            (selectedFilter === "published" && career.is_published === true) ||
-            (selectedFilter === "unpublished" && career.is_published !== true);
+            filter === "all" ||
+            (filter === "published" && career.is_published === true) ||
+            (filter === "unpublished" && career.is_published !== true);
 
         return matchesSearch && matchesFilter;
     });
 
-    if (!filteredCareers.length) {
+    if (!filtered.length) {
         careerAdminTableBody.innerHTML = `
             <tr>
                 <td colspan="6" class="table-message">
-                    No career listings found.
+                    No positions found.
                 </td>
             </tr>
         `;
-
         return;
     }
 
-    careerAdminTableBody.innerHTML = filteredCareers.map(career => {
+    careerAdminTableBody.innerHTML = filtered.map(career => {
         const published = career.is_published === true;
+
+        const applicantCount = applicantsCache.filter(
+            applicant => String(applicant.career_id) === String(career.id)
+        ).length;
 
         return `
             <tr>
                 <td>
                     <strong>${escapeHTML(career.title)}</strong>
+                    <small class="career-applicant-count">
+                        ${applicantCount} applicant(s)
+                    </small>
                 </td>
 
                 <td>${escapeHTML(career.department)}</td>
-
                 <td>${escapeHTML(career.location)}</td>
-
                 <td>${escapeHTML(career.employment_type)}</td>
 
                 <td>
@@ -444,6 +437,16 @@ function renderCareers() {
 
                 <td>
                     <div class="table-actions">
+
+                        <button
+                            type="button"
+                            class="table-action applicants"
+                            data-action="view-career-applicants"
+                            data-id="${escapeHTML(career.id)}"
+                        >
+                            Applicants
+                        </button>
+
                         <button
                             type="button"
                             class="table-action edit"
@@ -470,6 +473,7 @@ function renderCareers() {
                         >
                             Delete
                         </button>
+
                     </div>
                 </td>
             </tr>
@@ -477,6 +481,10 @@ function renderCareers() {
     }).join("");
 }
 
+
+/* =========================================
+   CAREER MODAL
+========================================= */
 
 function openCareerModal(career = null) {
     if (!careerAdminModal || !careerAdminForm) return;
@@ -487,7 +495,7 @@ function openCareerModal(career = null) {
     if (career) {
         careerModalTitle.textContent = "Edit Career Position";
 
-        careerRecordId.value = career.id || "";
+        careerRecordId.value = career.id;
         careerTitle.value = career.title || "";
         careerDepartment.value = career.department || "";
         careerLocation.value = career.location || "";
@@ -543,6 +551,10 @@ if (careerAdminModal) {
 }
 
 
+/* =========================================
+   SAVE CAREER
+========================================= */
+
 if (careerAdminForm) {
     careerAdminForm.addEventListener("submit", async event => {
         event.preventDefault();
@@ -573,11 +585,14 @@ if (careerAdminForm) {
             !careerData.employment_type ||
             !careerData.description
         ) {
-            showMessage(careerAdminMessage, "Please complete all required fields.");
+            showMessage(
+                careerAdminMessage,
+                "Please complete all required fields."
+            );
             return;
         }
 
-        setButtonLoading(saveCareerButton, true, "Saving...");
+        setLoading(saveCareerButton, true, "Saving...");
 
         try {
             let result;
@@ -599,25 +614,25 @@ if (careerAdminForm) {
 
             await loadCareers();
 
-            alert(id
-                ? "Career position updated successfully."
-                : "Career position created successfully."
+            alert(
+                id
+                    ? "Position updated successfully."
+                    : "New position added successfully."
             );
 
         } catch (error) {
-            console.error("Career save error:", error);
-
-            showMessage(
-                careerAdminMessage,
-                getErrorMessage(error)
-            );
+            showMessage(careerAdminMessage, displayError(error));
 
         } finally {
-            setButtonLoading(saveCareerButton, false);
+            setLoading(saveCareerButton, false);
         }
     });
 }
 
+
+/* =========================================
+   CAREER TABLE ACTIONS
+========================================= */
 
 if (careerAdminTableBody) {
     careerAdminTableBody.addEventListener("click", async event => {
@@ -625,25 +640,30 @@ if (careerAdminTableBody) {
 
         if (!button) return;
 
-        const action = button.dataset.action;
-        const id = button.dataset.id;
+        const { action, id } = button.dataset;
 
-        const career = careersCache.find(item => String(item.id) === String(id));
+        const career = careersCache.find(
+            item => String(item.id) === String(id)
+        );
 
         if (!career) return;
 
-        if (action === "edit-career") {
-            openCareerModal(career);
-            return;
-        }
+        switch (action) {
+            case "edit-career":
+                openCareerModal(career);
+                break;
 
-        if (action === "toggle-career") {
-            await toggleCareerPublication(career);
-            return;
-        }
+            case "toggle-career":
+                await toggleCareerPublication(career);
+                break;
 
-        if (action === "delete-career") {
-            await deleteCareer(career);
+            case "delete-career":
+                await deleteCareer(career);
+                break;
+
+            case "view-career-applicants":
+                showCareerApplicants(career);
+                break;
         }
     });
 }
@@ -652,13 +672,11 @@ if (careerAdminTableBody) {
 async function toggleCareerPublication(career) {
     const newStatus = career.is_published !== true;
 
-    const confirmed = window.confirm(
+    if (!confirm(
         newStatus
             ? `Publish "${career.title}"?`
             : `Unpublish "${career.title}"?`
-    );
-
-    if (!confirmed) return;
+    )) return;
 
     try {
         const { error } = await supabaseClient
@@ -671,18 +689,15 @@ async function toggleCareerPublication(career) {
         await loadCareers();
 
     } catch (error) {
-        console.error("Career publication error:", error);
-        alert(getErrorMessage(error));
+        alert(displayError(error));
     }
 }
 
 
 async function deleteCareer(career) {
-    const confirmed = window.confirm(
-        `Are you sure you want to delete "${career.title}"?`
-    );
-
-    if (!confirmed) return;
+    if (!confirm(
+        `Delete "${career.title}"? Existing applications will remain in the application table if your foreign key uses ON DELETE SET NULL.`
+    )) return;
 
     try {
         const { error } = await supabaseClient
@@ -693,23 +708,13 @@ async function deleteCareer(career) {
         if (error) throw error;
 
         await loadCareers();
+        await loadApplicants();
 
-        alert("Career position deleted successfully.");
+        alert("Position deleted successfully.");
 
     } catch (error) {
-        console.error("Career deletion error:", error);
-        alert(getErrorMessage(error));
+        alert(displayError(error));
     }
-}
-
-
-if (careerAdminSearch) {
-    careerAdminSearch.addEventListener("input", renderCareers);
-}
-
-
-if (careerAdminFilter) {
-    careerAdminFilter.addEventListener("change", renderCareers);
 }
 
 
@@ -723,7 +728,7 @@ async function loadApplicants() {
     applicantsTableBody.innerHTML = `
         <tr>
             <td colspan="7" class="table-message">
-                Loading applicant records...
+                Loading applicants...
             </td>
         </tr>
     `;
@@ -741,6 +746,7 @@ async function loadApplicants() {
         renderApplicants();
         updateApplicantStatistics();
         updateDashboardStatistics();
+        renderCareers();
 
     } catch (error) {
         console.error("Applicant loading error:", error);
@@ -748,7 +754,7 @@ async function loadApplicants() {
         applicantsTableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="table-message error">
-                    ${escapeHTML(getErrorMessage(error))}
+                    ${escapeHTML(displayError(error))}
                 </td>
             </tr>
         `;
@@ -759,10 +765,10 @@ async function loadApplicants() {
 function renderApplicants() {
     if (!applicantsTableBody) return;
 
-    const searchTerm = applicantSearch?.value.trim().toLowerCase() || "";
-    const selectedStatus = applicantStatusFilter?.value || "all";
+    const search = applicantSearch?.value.trim().toLowerCase() || "";
+    const statusFilter = applicantStatusFilter?.value || "all";
 
-    const filteredApplicants = applicantsCache.filter(applicant => {
+    const filtered = applicantsCache.filter(applicant => {
         const searchableText = [
             applicant.full_name,
             applicant.contact_no,
@@ -770,16 +776,11 @@ function renderApplicants() {
             applicant.position_title
         ].join(" ").toLowerCase();
 
-        const matchesSearch = searchableText.includes(searchTerm);
-
-        const matchesStatus =
-            selectedStatus === "all" ||
-            applicant.status === selectedStatus;
-
-        return matchesSearch && matchesStatus;
+        return searchableText.includes(search) &&
+            (statusFilter === "all" || applicant.status === statusFilter);
     });
 
-    if (!filteredApplicants.length) {
+    if (!filtered.length) {
         applicantsTableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="table-message">
@@ -787,11 +788,10 @@ function renderApplicants() {
                 </td>
             </tr>
         `;
-
         return;
     }
 
-    applicantsTableBody.innerHTML = filteredApplicants.map(applicant => {
+    applicantsTableBody.innerHTML = filtered.map(applicant => {
         const status = APPLICATION_STATUSES.includes(applicant.status)
             ? applicant.status
             : "Pending";
@@ -805,21 +805,13 @@ function renderApplicants() {
                     </div>
                 </td>
 
-                <td>
-                    ${escapeHTML(applicant.position_title)}
-                </td>
+                <td>${escapeHTML(applicant.position_title)}</td>
 
-                <td>
-                    ${escapeHTML(applicant.contact_no)}
-                </td>
+                <td>${escapeHTML(applicant.contact_no)}</td>
 
-                <td>
-                    ${formatCurrency(applicant.expected_salary)}
-                </td>
+                <td>${formatCurrency(applicant.expected_salary)}</td>
 
-                <td>
-                    ${formatDate(applicant.created_at)}
-                </td>
+                <td>${formatDate(applicant.created_at)}</td>
 
                 <td>
                     <button
@@ -837,7 +829,6 @@ function renderApplicants() {
                         class="applicant-status-select status-${status.toLowerCase().replace(/\s+/g, "-")}"
                         data-action="change-status"
                         data-id="${escapeHTML(applicant.id)}"
-                        aria-label="Application status"
                     >
                         ${APPLICATION_STATUSES.map(option => `
                             <option
@@ -855,9 +846,39 @@ function renderApplicants() {
 }
 
 
+/* =========================================
+   VIEW APPLICANTS FOR A POSITION
+========================================= */
+
+function showCareerApplicants(career) {
+    if (applicantSearch) {
+        applicantSearch.value = career.title;
+    }
+
+    if (applicantStatusFilter) {
+        applicantStatusFilter.value = "all";
+    }
+
+    renderApplicants();
+
+    const applicantSection = $("applicantManagement");
+
+    applicantSection?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+/* =========================================
+   RESUME VIEWER
+========================================= */
+
 if (applicantsTableBody) {
     applicantsTableBody.addEventListener("click", async event => {
-        const button = event.target.closest('button[data-action="view-resume"]');
+        const button = event.target.closest(
+            'button[data-action="view-resume"]'
+        );
 
         if (!button) return;
 
@@ -865,13 +886,48 @@ if (applicantsTableBody) {
             item => String(item.id) === String(button.dataset.id)
         );
 
-        if (!applicant) return;
+        if (!applicant?.resume_path) {
+            alert("Resume file is not available.");
+            return;
+        }
 
-        await openApplicantResume(applicant, button);
+        setLoading(button, true, "Opening...");
+
+        try {
+            const { data, error } = await supabaseClient
+                .storage
+                .from(RESUME_BUCKET)
+                .createSignedUrl(applicant.resume_path, 300);
+
+            if (error) throw error;
+
+            if (!data?.signedUrl) {
+                throw new Error("Could not generate resume link.");
+            }
+
+            const newWindow = window.open(
+                data.signedUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+
+            if (!newWindow) {
+                alert("Please allow pop-ups to view the resume.");
+            }
+
+        } catch (error) {
+            alert(`Resume error: ${displayError(error)}`);
+
+        } finally {
+            setLoading(button, false);
+        }
     });
 
+
     applicantsTableBody.addEventListener("change", async event => {
-        const select = event.target.closest('select[data-action="change-status"]');
+        const select = event.target.closest(
+            'select[data-action="change-status"]'
+        );
 
         if (!select) return;
 
@@ -881,52 +937,20 @@ if (applicantsTableBody) {
 
         if (!applicant) return;
 
-        await updateApplicantStatus(applicant, select.value, select);
+        await updateApplicantStatus(
+            applicant,
+            select.value,
+            select
+        );
     });
 }
 
 
-async function openApplicantResume(applicant, button) {
-    if (!applicant.resume_path) {
-        alert("No resume file was found for this application.");
-        return;
-    }
+/* =========================================
+   UPDATE APPLICANT STATUS
+========================================= */
 
-    setButtonLoading(button, true, "Opening...");
-
-    try {
-        const { data, error } = await supabaseClient
-            .storage
-            .from(RESUME_BUCKET)
-            .createSignedUrl(applicant.resume_path, 300);
-
-        if (error) throw error;
-
-        if (!data?.signedUrl) {
-            throw new Error("Unable to generate a secure resume link.");
-        }
-
-        const newWindow = window.open(
-            data.signedUrl,
-            "_blank",
-            "noopener,noreferrer"
-        );
-
-        if (!newWindow) {
-            alert("Your browser blocked the resume window. Please allow pop-ups and try again.");
-        }
-
-    } catch (error) {
-        console.error("Resume access error:", error);
-        alert(`Unable to open resume: ${getErrorMessage(error)}`);
-
-    } finally {
-        setButtonLoading(button, false);
-    }
-}
-
-
-async function updateApplicantStatus(applicant, newStatus, selectElement) {
+async function updateApplicantStatus(applicant, newStatus, select) {
     if (!APPLICATION_STATUSES.includes(newStatus)) {
         alert("Invalid application status.");
         renderApplicants();
@@ -935,7 +959,7 @@ async function updateApplicantStatus(applicant, newStatus, selectElement) {
 
     const previousStatus = applicant.status;
 
-    selectElement.disabled = true;
+    select.disabled = true;
 
     try {
         const { error } = await supabaseClient
@@ -952,19 +976,20 @@ async function updateApplicantStatus(applicant, newStatus, selectElement) {
         updateDashboardStatistics();
 
     } catch (error) {
-        console.error("Applicant status update error:", error);
-
         applicant.status = previousStatus;
 
-        alert(`Unable to update application status: ${getErrorMessage(error)}`);
-
+        alert(displayError(error));
         renderApplicants();
 
     } finally {
-        selectElement.disabled = false;
+        select.disabled = false;
     }
 }
 
+
+/* =========================================
+   APPLICANT SEARCH AND FILTER
+========================================= */
 
 if (applicantSearch) {
     applicantSearch.addEventListener("input", renderApplicants);
@@ -978,94 +1003,81 @@ if (applicantStatusFilter) {
 
 if (refreshApplicantsButton) {
     refreshApplicantsButton.addEventListener("click", async () => {
-        setButtonLoading(refreshApplicantsButton, true, "Refreshing...");
+        setLoading(refreshApplicantsButton, true, "Refreshing...");
 
         await loadApplicants();
 
-        setButtonLoading(refreshApplicantsButton, false);
+        setLoading(refreshApplicantsButton, false);
     });
 }
 
 
 /* =========================================
-   DASHBOARD STATISTICS
+   CAREER SEARCH AND FILTER
+========================================= */
+
+if (careerAdminSearch) {
+    careerAdminSearch.addEventListener("input", renderCareers);
+}
+
+
+if (careerAdminFilter) {
+    careerAdminFilter.addEventListener("change", renderCareers);
+}
+
+
+/* =========================================
+   STATISTICS
 ========================================= */
 
 function updateDashboardStatistics() {
-    const totalCareers = careersCache.length;
+    const values = {
+        totalCareers: careersCache.length,
 
-    const publishedCount = careersCache.filter(
-        career => career.is_published === true
-    ).length;
+        publishedCareers: careersCache.filter(
+            career => career.is_published === true
+        ).length,
 
-    const totalApplications = applicantsCache.length;
+        totalApplicants: applicantsCache.length,
 
-    const pendingCount = applicantsCache.filter(
-        applicant => applicant.status === "Pending"
-    ).length;
+        pendingApplicants: applicantsCache.filter(
+            applicant => applicant.status === "Pending"
+        ).length
+    };
 
-    const totalCareersElement = document.getElementById("totalCareers");
-    const publishedCareersElement = document.getElementById("publishedCareers");
-    const totalApplicantsElement = document.getElementById("totalApplicants");
-    const pendingApplicantsElement = document.getElementById("pendingApplicants");
+    Object.entries(values).forEach(([id, value]) => {
+        const element = $(id);
 
-    if (totalCareersElement) {
-        totalCareersElement.textContent = totalCareers;
-    }
-
-    if (publishedCareersElement) {
-        publishedCareersElement.textContent = publishedCount;
-    }
-
-    if (totalApplicantsElement) {
-        totalApplicantsElement.textContent = totalApplications;
-    }
-
-    if (pendingApplicantsElement) {
-        pendingApplicantsElement.textContent = pendingCount;
-    }
+        if (element) {
+            element.textContent = value;
+        }
+    });
 }
 
 
 function updateApplicantStatistics() {
     const counts = {
-        total: applicantsCache.length,
-        pending: 0,
-        review: 0,
-        shortlisted: 0,
-        hired: 0
+        applicantTotalCount: applicantsCache.length,
+
+        applicantPendingCount: applicantsCache.filter(
+            applicant => applicant.status === "Pending"
+        ).length,
+
+        applicantReviewCount: applicantsCache.filter(
+            applicant => applicant.status === "Under Review"
+        ).length,
+
+        applicantShortlistedCount: applicantsCache.filter(
+            applicant => applicant.status === "Shortlisted"
+        ).length,
+
+        applicantHiredCount: applicantsCache.filter(
+            applicant => applicant.status === "Hired"
+        ).length
     };
 
-    applicantsCache.forEach(applicant => {
-        switch (applicant.status) {
-            case "Pending":
-                counts.pending++;
-                break;
-
-            case "Under Review":
-                counts.review++;
-                break;
-
-            case "Shortlisted":
-                counts.shortlisted++;
-                break;
-
-            case "Hired":
-                counts.hired++;
-                break;
-        }
-    });
-
-    const elements = {
-        applicantTotalCount: counts.total,
-        applicantPendingCount: counts.pending,
-        applicantReviewCount: counts.review,
-        applicantShortlistedCount: counts.shortlisted,
-        applicantHiredCount: counts.hired
-    };
-
-    Object.entries(elements).forEach(([id, value]) => {
-        const element = document.getElementById(id);
+    Object.entries(counts).forEach(([id, value]) => {
+        const element = $(id);
 
         if (element) {
             element.textContent = value;
@@ -1075,7 +1087,7 @@ function updateApplicantStatistics() {
 
 
 /* =========================================
-   SIDEBAR NAVIGATION
+   SIDEBAR
 ========================================= */
 
 if (toggleAdminSidebar && adminSidebar) {
@@ -1099,21 +1111,22 @@ document.querySelectorAll(".sidebar-link").forEach(link => {
 
 
 /* =========================================
-   AUTH STATE LISTENER
+   AUTH STATE CHANGE
+   Avoid duplicate login redirects.
 ========================================= */
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
+supabaseClient.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
         currentAdmin = null;
-        showLoginPage();
+
+        if (adminLoginPage) adminLoginPage.hidden = false;
+        if (adminDashboard) adminDashboard.hidden = true;
     }
 });
 
 
 /* =========================================
-   INITIALIZATION
+   INITIALIZE
 ========================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    checkAdminAccess();
-});
+initializeAdmin();
