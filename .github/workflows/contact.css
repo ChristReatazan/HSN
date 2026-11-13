@@ -1,0 +1,85 @@
+/* HSN Philippines - Contact Us */
+.contact-page { background: #f6f8f6; color: #17251f; }
+.contact-page .header {
+    position: sticky; top: 0; z-index: 100; width: 100%; min-height: 82px;
+    padding: 8px clamp(20px, 5vw, 76px); display: flex; align-items: center;
+    justify-content: space-between; gap: 24px; background: rgba(255,255,255,.94);
+    border-bottom: 1px solid #e7ede9; backdrop-filter: blur(14px);
+}
+.contact-page .logo-image { width: 210px; height: 72px; object-fit: contain; }
+.contact-page .navigation { display: flex; align-items: center; justify-content: flex-end; gap: 4px; flex-wrap: wrap; }
+.contact-page .navigation a { color: #46574e; text-decoration: none; padding: 9px 10px; border-radius: 7px; }
+.contact-page .navigation a:hover, .contact-page .navigation a.active { color: #008b63; background: #eaf7f1; }
+.contact-page .menu-toggle { display: none; }
+.contact-hero {
+    max-width: 980px; margin: 0 auto; padding: clamp(70px, 9vw, 112px) 24px 52px; text-align: center;
+}
+.contact-eyebrow, .contact-kicker { color: #00966b; font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+.contact-hero h1 { margin: 18px 0 16px; font-size: clamp(38px, 5.5vw, 64px); letter-spacing: -2.5px; color: #10281e; }
+.contact-hero h1 span { color: #00a878; }
+.contact-hero > p { max-width: 690px; margin: 0 auto; color: #718078; font-size: 16px; }
+.contact-layout {
+    width: min(1120px, calc(100% - 40px)); margin: 0 auto 90px; display: grid;
+    grid-template-columns: .82fr 1.18fr; gap: 24px; align-items: stretch;
+}
+.contact-info, .contact-form-card {
+    border: 1px solid #e5ece7; border-radius: 18px; background: #fff;
+    box-shadow: 0 18px 50px rgba(9,37,28,.07);
+}
+.contact-info { padding: clamp(28px, 4vw, 42px); color: #fff; background: linear-gradient(145deg,#0b3325,#09251c); }
+.contact-info .contact-kicker { color: #71e0b8; }
+.contact-info h2 { margin: 13px 0 9px; color: #fff; font-size: 30px; }
+.contact-info > p { margin: 0 0 30px; color: #bfd0c7; font-size: 14px; }
+.contact-info-item { display: flex; align-items: flex-start; gap: 14px; margin: 20px 0; color: #fff; text-decoration: none; }
+.contact-icon { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border: 1px solid rgba(113,224,184,.28); border-radius: 12px; color: #71e0b8; font-size: 20px; }
+.contact-info-item small { display: block; margin: 1px 0 5px; color: #8fb4a2; font-size: 10px; font-weight: 800; letter-spacing: 1.3px; }
+.contact-info-item strong { display: block; color: #f3faf6; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+.contact-address { cursor: default; }
+.contact-note { margin-top: 34px; padding: 18px; border: 1px solid rgba(113,224,184,.2); border-radius: 12px; background: rgba(255,255,255,.05); }
+.contact-note strong { color: #71e0b8; font-size: 13px; }
+.contact-note p { margin: 7px 0 0; color: #c0d1c8; font-size: 12px; }
+.contact-form-card { padding: clamp(28px, 4vw, 44px); }
+.contact-form-heading { margin-bottom: 28px; }
+.contact-form-heading h2 { margin: 10px 0 7px; color: #14291f; font-size: 30px; }
+.contact-form-heading p { margin: 0; color: #7b8981; font-size: 13px; }
+.contact-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 19px 16px; }
+.contact-field { min-width: 0; }
+.contact-field-full { grid-column: 1 / -1; }
+.contact-field label { display: block; margin-bottom: 8px; color: #30443a; font-size: 12px; font-weight: 700; }
+.contact-field label span { color: #00a878; }
+.contact-field input, .contact-field select, .contact-field textarea {
+    display: block; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #dfe8e2;
+    border-radius: 9px; outline: none; background: #fbfdfb; color: #1c3026; font: 14px var(--hsn-font-body);
+    transition: border-color .2s, box-shadow .2s;
+}
+.contact-field textarea { min-height: 145px; resize: vertical; }
+.contact-field input:focus, .contact-field select:focus, .contact-field textarea:focus { border-color: #00a878; box-shadow: 0 0 0 3px rgba(0,168,120,.1); }
+.contact-field input::placeholder, .contact-field textarea::placeholder { color: #a0aca5; }
+.contact-privacy { margin: 19px 0; color: #849189; font-size: 11px; }
+.contact-privacy a { color: #008e65; font-weight: 700; }
+.contact-submit { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 9px; background: #00a878; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: transform .2s, background .2s; }
+.contact-submit:hover { background: #008e65; transform: translateY(-2px); }
+.contact-submit span { font-size: 18px; }
+.contact-form-status { min-height: 20px; margin: 12px 0 0; color: #008e65; font-size: 12px; }
+.contact-footer { display: flex; justify-content: space-between; gap: 16px; padding: 24px max(24px,calc((100% - 1120px)/2)); border-top: 1px solid #e3ebe5; color: #849189; font-size: 11px; }
+.contact-footer a { color: #008e65; text-decoration: none; font-weight: 700; }
+@media (max-width: 1050px) {
+    .contact-page .header { flex-wrap: wrap; }
+    .contact-page .navigation { gap: 0; }
+    .contact-page .navigation a { padding: 8px 7px; font-size: 12px !important; }
+}
+@media (max-width: 760px) {
+    .contact-page .header { min-height: 72px; flex-wrap: nowrap; }
+    .contact-page .logo-image { width: 170px; }
+    .contact-page .menu-toggle { display: block; }
+    .contact-page .navigation { display: none; position: absolute; top: 100%; left: 0; right: 0; padding: 14px 22px 20px; background: #fff; border-bottom: 1px solid #e5ece7; box-shadow: 0 16px 30px rgba(9,37,28,.08); align-items: stretch; flex-direction: column; }
+    .contact-page .navigation.show { display: flex; }
+    .contact-page .navigation a { padding: 11px 10px; }
+    .contact-layout { grid-template-columns: 1fr; }
+    .contact-hero { padding-top: 64px; }
+}
+@media (max-width: 520px) {
+    .contact-form-grid { grid-template-columns: 1fr; }
+    .contact-field-full { grid-column: auto; }
+    .contact-footer { flex-direction: column; align-items: flex-start; }
+}
