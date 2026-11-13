@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Management | HSN Philippines</title>
+    <link rel="stylesheet" href="applicant-management.css">
+</head>
+<body>
+
+    <div class="app-layout">
+
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-mark">HSN</div>
+                <div class="brand-text">
+                    <strong>HSN PHILIPPINES</strong>
+                    <span>ADMINISTRATION</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <span class="sidebar-label">WORKSPACE</span>
+
+                <a href="admin.html" class="sidebar-link">
+                    <span class="sidebar-icon">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="admin.html#careerManagement" class="sidebar-link">
+                    <span class="sidebar-icon">▤</span>
+                    Career Listings
+                </a>
+
+                <a href="applicant-management.html" class="sidebar-link active">
+                    <span class="sidebar-icon">♙</span>
+                    Applicant Management
+                </a>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="sidebarAvatar">A</div>
+                    <div class="user-details">
+                        <strong id="sidebarAdminName">Administrator</strong>
+                        <span>Administrator</span>
+                    </div>
+                </div>
+
+                <button type="button" id="logoutButton" class="sidebar-logout">
+                    <span>↪</span>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <span class="breadcrumb">Dashboard / Applicant Management</span>
+                    <h1>Applicant Management</h1>
+                </div>
+
+                <div class="topbar-right">
+                    <span class="system-status">
+                        <span class="status-dot"></span>
+                        SYSTEM ONLINE
+                    </span>
+                </div>
+            </header>
+
+            <section class="page-intro">
+                <div>
+                    <span class="eyebrow">CAREER RECRUITMENT</span>
+                    <h2>Manage Applications</h2>
+                    <p>Review applications, access submitted resumes, and track applicant progress.</p>
+                </div>
+
+                <button type="button" class="refresh-button" id="refreshButton">
+                    <span>↻</span>
+                    Refresh Data
+                </button>
+            </section>
+
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Applicants</span>
+                        <span class="stat-icon">♙</span>
+                    </div>
+                    <strong id="totalApplicants">0</strong>
+                    <small>All submitted applications</small>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Pending Review</span>
+                        <span class="stat-icon pending-icon">◷</span>
+                    </div>
+                    <strong id="pendingApplicants">0</strong>
+                    <small>Awaiting assessment</small>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Shortlisted</span>
+                        <span class="stat-icon shortlisted-icon">✓</span>
+                    </div>
+                    <strong id="shortlistedApplicants">0</strong>
+                    <small>Selected for consideration</small>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Unread Applications</span>
+                        <span class="stat-icon unread-icon">✉</span>
+                    </div>
+                    <strong id="unreadApplicants">0</strong>
+                    <small>Not yet reviewed</small>
+                </article>
+            </section>
+
+            <section class="applicant-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">APPLICATION RECORDS</span>
+                        <h2>All Applicants</h2>
+                        <p>Review and manage submitted career applications.</p>
+                    </div>
+
+                    <span class="record-count" id="recordCount">0 applicants</span>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>⌕</span>
+                        <input
+                            type="search"
+                            id="searchApplicants"
+                            placeholder="Search name, applicant ID, email..."
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <select id="statusFilter" class="filter-select">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Shortlisted">Shortlisted</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+
+                    <select id="sortFilter" class="filter-select">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="name">Name A–Z</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table class="applicant-table">
+                        <thead>
+                            <tr>
+                                <th>APPLICANT</th>
+                                <th>POSITION</th>
+                                <th>DATE SUBMITTED</th>
+                                <th>STATUS</th>
+                                <th>REVIEW</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="applicantTableBody">
+                            <tr>
+                                <td colspan="6" class="table-message">
+                                    Loading applications...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <span id="tableSummary">Showing 0 applicants</span>
+                    <button type="button" id="clearFiltersButton" class="clear-filter-button">
+                        Clear Filters
+                    </button>
+                </div>
+
+            </section>
+
+            <footer class="page-footer">
+                <span>© 2026 HSN Philippines. All rights reserved.</span>
+                <span>ADMINISTRATION PORTAL</span>
+            </footer>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="applicantModal">
+        <div class="applicant-modal">
+
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">APPLICANT PROFILE</span>
+                    <h2>Application Details</h2>
+                </div>
+
+                <button type="button" class="modal-close" id="closeApplicantModal">
+                    ×
+                </button>
+            </div>
+
+            <div class="modal-body" id="applicantDetails">
+                <div class="modal-loading">Loading applicant details...</div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary-button" id="closeApplicantButton">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="applicant-management.js"></script>
+
+</body>
+</html>
