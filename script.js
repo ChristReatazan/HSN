@@ -1,4 +1,3 @@
-
 /* =========================================
    HERO SLIDESHOW
 ========================================= */
@@ -68,35 +67,157 @@ if (menuToggle && navigation) {
    SUPABASE CONFIGURATION
 ========================================= */
 
-// Replace these with your actual Supabase credentials.
 const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
-// Change this to your actual admin dashboard filename.
 const ADMIN_DASHBOARD_URL = "admin.html";
 
 let supabaseClient = null;
 
-if (
-    window.supabase &&
-    SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL" &&
-    SUPABASE_PUBLISHABLE_KEY !== "YOUR_SUPABASE_PUBLISHABLE_KEY"
-) {
+if (window.supabase) {
     supabaseClient = window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        }
     );
 }
 
 
 /* =========================================
-   ADMIN LOGIN MODAL
+   ADMIN SESSION NAVIGATION
 ========================================= */
 
 const adminLoginTrigger = document.getElementById("adminLoginTrigger");
 const mobileLoginTrigger = document.getElementById("mobileLoginTrigger");
 const adminLoginModal = document.getElementById("adminLoginModal");
 const closeAdminModal = document.getElementById("closeAdminModal");
+
+let adminPortalLink = null;
+let sessionCheckInProgress = false;
+
+function createAdminPortalLink() {
+    if (!navigation) return null;
+
+    let link = navigation.querySelector(".admin-portal-nav-link");
+
+    if (!link) {
+        link = document.createElement("a");
+        link.href = ADMIN_DASHBOARD_URL;
+        link.className = "admin-portal-nav-link";
+        link.textContent = "Admin Portal";
+
+        const careerLink = navigation.querySelector(
+            'a[href="career.html"], a.career-nav-active'
+        );
+
+        if (careerLink) {
+            careerLink.insertAdjacentElement("afterend", link);
+        } else {
+            navigation.appendChild(link);
+        }
+    }
+
+    return link;
+}
+
+function showAdminNavigation(isAdmin) {
+    if (adminLoginTrigger) {
+        adminLoginTrigger.hidden = isAdmin;
+        adminLoginTrigger.style.display = isAdmin ? "none" : "";
+    }
+
+    if (mobileLoginTrigger) {
+        mobileLoginTrigger.hidden = isAdmin;
+        mobileLoginTrigger.style.display = isAdmin ? "none" : "";
+    }
+
+    if (isAdmin) {
+        adminPortalLink = createAdminPortalLink();
+
+        if (adminPortalLink) {
+            adminPortalLink.hidden = false;
+            adminPortalLink.style.display = "";
+        }
+    } else if (adminPortalLink) {
+        adminPortalLink.remove();
+        adminPortalLink = null;
+    }
+}
+
+async function refreshAdminNavigation() {
+    if (!supabaseClient || sessionCheckInProgress) return;
+
+    sessionCheckInProgress = true;
+
+    try {
+        const {
+            data: { session },
+            error: sessionError
+        } = await supabaseClient.auth.getSession();
+
+        if (sessionError || !session) {
+            showAdminNavigation(false);
+            return;
+        }
+
+        const { data: profile, error: profileError } =
+            await supabaseClient
+                .from("profiles")
+                .select("role")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+        if (profileError) {
+            console.error(
+                "Admin session profile verification error:",
+                profileError
+            );
+
+            showAdminNavigation(false);
+            return;
+        }
+
+        const isAdmin =
+            profile &&
+            String(profile.role).toLowerCase() === "admin";
+
+        showAdminNavigation(Boolean(isAdmin));
+
+    } catch (error) {
+        console.error("Admin session verification error:", error);
+        showAdminNavigation(false);
+    } finally {
+        sessionCheckInProgress = false;
+    }
+}
+
+if (supabaseClient) {
+    refreshAdminNavigation();
+
+    supabaseClient.auth.onAuthStateChange((event) => {
+        if (
+            event === "SIGNED_IN" ||
+            event === "SIGNED_OUT" ||
+            event === "TOKEN_REFRESHED" ||
+            event === "USER_UPDATED"
+        ) {
+            window.setTimeout(() => {
+                refreshAdminNavigation();
+            }, 0);
+        }
+    });
+}
+
+
+/* =========================================
+   ADMIN LOGIN MODAL
+========================================= */
 
 const adminLoginForm = document.getElementById("adminLoginForm");
 const adminEmail = document.getElementById("adminEmail");
@@ -113,7 +234,7 @@ function openAdminLogin() {
     adminLoginModal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
 
-    setTimeout(() => {
+    window.setTimeout(() => {
         adminEmail?.focus();
     }, 200);
 }
@@ -137,13 +258,13 @@ adminLoginTrigger?.addEventListener("click", openAdminLogin);
 mobileLoginTrigger?.addEventListener("click", openAdminLogin);
 closeAdminModal?.addEventListener("click", closeAdminLogin);
 
-adminLoginModal?.addEventListener("click", function(event) {
+adminLoginModal?.addEventListener("click", event => {
     if (event.target === adminLoginModal) {
         closeAdminLogin();
     }
 });
 
-document.addEventListener("keydown", function(event) {
+document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
         closeAdminLogin();
     }
@@ -154,7 +275,7 @@ document.addEventListener("keydown", function(event) {
    SHOW / HIDE PASSWORD
 ========================================= */
 
-togglePassword?.addEventListener("click", function() {
+togglePassword?.addEventListener("click", () => {
     const isPassword = adminPassword.type === "password";
 
     adminPassword.type = isPassword ? "text" : "password";
@@ -178,11 +299,13 @@ function showLoginError(message) {
    SUPABASE ADMIN LOGIN
 ========================================= */
 
-adminLoginForm?.addEventListener("submit", async function(event) {
+adminLoginForm?.addEventListener("submit", async event => {
     event.preventDefault();
 
     if (!supabaseClient) {
-        showLoginError("Supabase is not configured. Please check the project credentials.");
+        showLoginError(
+            "Supabase is not configured. Please check the project credentials."
+        );
         return;
     }
 
@@ -205,11 +328,10 @@ adminLoginForm?.addEventListener("submit", async function(event) {
     }
 
     try {
-        // Step 1: Authenticate using Supabase Auth.
         const { data: authData, error: authError } =
             await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
+                email,
+                password
             });
 
         if (authError) {
@@ -222,35 +344,41 @@ adminLoginForm?.addEventListener("submit", async function(event) {
             throw new Error("Unable to verify your account.");
         }
 
-        // Step 2: Check the user's role in the profiles table.
         const { data: profile, error: profileError } =
             await supabaseClient
                 .from("profiles")
                 .select("full_name, role")
                 .eq("id", user.id)
-                .single();
+                .maybeSingle();
 
-        if (profileError || !profile) {
-            await supabaseClient.auth.signOut();
-            throw new Error("Your account profile could not be found.");
+        if (profileError) {
+            throw new Error(
+                "Unable to verify your administrator profile. Please try again."
+            );
         }
 
-        // Step 3: Allow admins only.
-        if (profile.role !== "admin") {
+        if (
+            !profile ||
+            String(profile.role).toLowerCase() !== "admin"
+        ) {
             await supabaseClient.auth.signOut();
-            throw new Error("Access denied. This account does not have administrator privileges.");
+
+            throw new Error(
+                "Access denied. This account does not have administrator privileges."
+            );
         }
 
-        // Step 4: Redirect after successful admin login.
         window.location.href = ADMIN_DASHBOARD_URL;
 
     } catch (error) {
         console.error("Admin login error:", error);
-        showLoginError(error.message || "Something went wrong. Please try again.");
+        showLoginError(
+            error.message || "Something went wrong. Please try again."
+        );
 
         if (adminLoginSubmit) {
             adminLoginSubmit.disabled = false;
-            adminLoginSubmit.textContent = "LOGIN";
+            adminLoginSubmit.textContent = "Sign In to Admin Portal";
         }
     }
 });
