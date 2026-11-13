@@ -6,7 +6,6 @@
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
     "use strict";
 
     /* =========================================
@@ -55,35 +54,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const applicationModal = document.getElementById("applicationModal");
     const applicationForm = document.getElementById("careerApplicationForm");
 
-    const closeApplication =
-        document.getElementById("closeApplicationModal");
+    const closeApplication = document.getElementById("closeApplicationModal");
 
-    const applicationCareerId =
-        document.getElementById("applicationCareerId");
+    const applicationCareerId = document.getElementById("applicationCareerId");
+    const applicationPosition = document.getElementById("applicationPosition");
 
-    const applicationPosition =
-        document.getElementById("applicationPosition");
+    const applicantFullName = document.getElementById("applicantFullName");
+    const applicantContact = document.getElementById("applicantContact");
+    const applicantAddress = document.getElementById("applicantAddress");
+    const applicantSalary = document.getElementById("applicantSalary");
+    const applicantResume = document.getElementById("applicantResume");
 
-    const applicantFullName =
-        document.getElementById("applicantFullName");
-
-    const applicantContact =
-        document.getElementById("applicantContact");
-
-    const applicantAddress =
-        document.getElementById("applicantAddress");
-
-    const applicantSalary =
-        document.getElementById("applicantSalary");
-
-    const applicantResume =
-        document.getElementById("applicantResume");
-
-    const submitApplication =
-        document.getElementById("submitApplication");
-
-    const applicationMessage =
-        document.getElementById("applicationMessage");
+    const submitApplication = document.getElementById("submitApplication");
+    const applicationMessage = document.getElementById("applicationMessage");
 
     /* =========================================
        STATE
@@ -121,7 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     async function loadCareers() {
-
         if (!careerGrid) {
             console.error("Career grid element not found.");
             return;
@@ -134,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         try {
-
             const { data, error } = await supabase
                 .from(CAREERS_TABLE)
                 .select(`
@@ -159,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             renderCareers();
 
         } catch (error) {
-
             console.error("Career loading error:", error);
 
             careerGrid.innerHTML = `
@@ -176,11 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     function renderCareers() {
-
         if (!careerGrid) return;
 
         if (!filteredCareers.length) {
-
             careerGrid.innerHTML = `
                 <div class="career-empty">
                     <h3>No available positions</h3>
@@ -192,21 +170,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         careerGrid.innerHTML = filteredCareers.map(career => {
-
             const title = escapeHTML(career.title);
             const department = escapeHTML(career.department || "General");
             const location = escapeHTML(career.location || "Not specified");
-            const employment = escapeHTML(
-                career.employment_type || "Full-time"
-            );
-
+            const employment = escapeHTML(career.employment_type || "Full-time");
             const description = escapeHTML(
                 career.description || "No description available."
             );
 
             return `
                 <article class="career-card">
-
                     <div class="career-card-content">
 
                         <div class="career-card-meta">
@@ -216,13 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <h3>${title}</h3>
 
-                        <p class="career-location">
-                            ${location}
-                        </p>
+                        <p class="career-location">${location}</p>
 
-                        <p class="career-description">
-                            ${description}
-                        </p>
+                        <p class="career-description">${description}</p>
 
                     </div>
 
@@ -245,10 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         </button>
 
                     </div>
-
                 </article>
             `;
-
         }).join("");
     }
 
@@ -257,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     function filterCareers() {
-
         const searchTerm = searchInput
             ? searchInput.value.toLowerCase().trim()
             : "";
@@ -267,7 +233,6 @@ document.addEventListener("DOMContentLoaded", () => {
             : "";
 
         filteredCareers = careers.filter(career => {
-
             const searchableText = [
                 career.title,
                 career.department,
@@ -276,8 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 career.description
             ].join(" ").toLowerCase();
 
-            const matchesSearch =
-                searchableText.includes(searchTerm);
+            const matchesSearch = searchableText.includes(searchTerm);
 
             const matchesDepartment =
                 !department ||
@@ -298,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     function openCareerDetails(career) {
-
         if (!detailModal) return;
 
         if (detailTitle) {
@@ -319,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (detailRequirements) {
-
             const requirements = Array.isArray(career.requirements)
                 ? career.requirements
                 : String(career.requirements || "")
@@ -342,7 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeCareerDetails() {
-
         detailModal?.classList.remove("active");
         document.body.style.overflow = "";
     }
@@ -361,18 +322,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     function showApplicationMessage(text, success = false) {
-
         if (!applicationMessage) return;
 
         applicationMessage.textContent = text;
-
         applicationMessage.style.color = success
             ? "#087d5b"
             : "#dc2626";
     }
 
     function openApplication(career) {
-
         if (!applicationModal || !applicationForm) {
             console.error("Application modal is missing from career.html.");
             return;
@@ -380,8 +338,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         applicationForm.reset();
 
-        applicationCareerId.value = career.id;
-        applicationPosition.textContent = career.title;
+        if (applicationCareerId) {
+            applicationCareerId.value = career.id;
+        }
+
+        if (applicationPosition) {
+            applicationPosition.textContent = career.title;
+        }
 
         showApplicationMessage("");
 
@@ -390,22 +353,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeApplicationModal() {
-
         applicationModal?.classList.remove("active");
         document.body.style.overflow = "";
     }
 
-    closeApplication?.addEventListener(
-        "click",
-        closeApplicationModal
-    );
+    closeApplication?.addEventListener("click", closeApplicationModal);
 
     applicationModal?.addEventListener("click", event => {
-
         if (event.target === applicationModal) {
             closeApplicationModal();
         }
-
     });
 
     /* =========================================
@@ -413,12 +370,10 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     careerGrid?.addEventListener("click", event => {
-
         const detailsButton = event.target.closest(".view-career-btn");
         const applyButton = event.target.closest(".apply-career-btn");
 
         if (detailsButton) {
-
             const career = careers.find(item =>
                 String(item.id) === String(detailsButton.dataset.id)
             );
@@ -431,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (applyButton) {
-
             const career = careers.find(item =>
                 String(item.id) === String(applyButton.dataset.id)
             );
@@ -439,17 +393,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (career) {
                 openApplication(career);
             }
-
         }
-
     });
 
     /* =========================================
-       RESUME VALIDATION
+       NUMBER 5 - RESUME VALIDATION
     ========================================= */
 
     function validateResume(file) {
-
         if (!file) {
             return "Please upload your resume.";
         }
@@ -478,7 +429,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     applicationForm?.addEventListener("submit", async event => {
-
         event.preventDefault();
 
         const careerId = applicationCareerId?.value.trim();
@@ -524,9 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let uploadedPath = null;
 
         try {
-
-            /* Verify position is still published */
-
             const { data: verifiedCareer, error: careerError } =
                 await supabase
                     .from(CAREERS_TABLE)
@@ -541,8 +488,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
-            /* Upload resume */
-
             const uniqueFileName =
                 `${crypto.randomUUID()}-${safeFileName(resume.name)}`;
 
@@ -556,8 +501,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (uploadError) throw uploadError;
 
             uploadedPath = uniqueFileName;
-
-            /* Save application */
 
             const { error: insertError } = await supabase
                 .from(APPLICATIONS_TABLE)
@@ -585,20 +528,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 1800);
 
         } catch (error) {
-
             console.error("Application submission error:", error);
 
             if (uploadedPath) {
-
                 const { error: cleanupError } = await supabase.storage
                     .from(RESUME_BUCKET)
                     .remove([uploadedPath]);
 
                 if (cleanupError) {
-                    console.error(
-                        "Resume cleanup failed:",
-                        cleanupError
-                    );
+                    console.error("Resume cleanup failed:", cleanupError);
                 }
             }
 
@@ -607,11 +545,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         } finally {
-
             submitApplication.disabled = false;
             submitApplication.textContent = "Submit Application";
         }
-
     });
 
     /* =========================================
@@ -619,14 +555,10 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     document.addEventListener("keydown", event => {
-
         if (event.key === "Escape") {
-
             closeCareerDetails();
             closeApplicationModal();
-
         }
-
     });
 
     /* =========================================
