@@ -295,11 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
        PROFILE DROPDOWN
     ========================================= */
 
-    const existingDropdown = document.getElementById(
-        "adminProfileDropdown"
-    );
-
-    existingDropdown?.remove();
+    document.getElementById("adminProfileDropdown")?.remove();
 
     const dropdown = document.createElement("div");
 
@@ -362,13 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
        MODALS
     ========================================= */
 
-    function createModal(
-        id,
-        title,
-        description,
-        fields,
-        submitText
-    ) {
+    function createModal(id, title, description, fields, submitText) {
         document.getElementById(id)?.remove();
 
         const overlay = document.createElement("div");
@@ -463,30 +453,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeModal(modal) {
         modal.classList.remove("show");
-
         modal.querySelector("form").reset();
 
-        const message = modal.querySelector(
-            ".profile-form-message"
-        );
+        const message = modal.querySelector(".profile-form-message");
 
         message.className = "profile-form-message";
         message.textContent = "";
     }
 
     function showMessage(modal, message, type) {
-        const element = modal.querySelector(
-            ".profile-form-message"
-        );
+        const element = modal.querySelector(".profile-form-message");
 
         element.textContent = message;
         element.className = `profile-form-message ${type}`;
     }
 
     function setLoading(form, loading, text) {
-        const button = form.querySelector(
-            'button[type="submit"]'
-        );
+        const button = form.querySelector('button[type="submit"]');
 
         button.disabled = loading;
         button.textContent = loading ? "Please wait..." : text;
@@ -511,10 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const isOpen = dropdown.classList.toggle("show");
 
-        avatar.setAttribute(
-            "aria-expanded",
-            String(isOpen)
-        );
+        avatar.setAttribute("aria-expanded", String(isOpen));
     });
 
     avatar.addEventListener("keydown", event => {
@@ -551,11 +531,32 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     /* =========================================
+       APPLICANT MANAGEMENT NAVIGATION
+    ========================================= */
+
+    const applicantNotificationLink = document.getElementById(
+        "applicantNotificationLink"
+    );
+
+    applicantNotificationLink.addEventListener("click", event => {
+        event.preventDefault();
+        closeDropdown();
+
+        const destination = new URL(
+            "applicant-management.html",
+            window.location.href
+        );
+
+        window.location.assign(destination.href);
+    });
+
+    /* =========================================
        EDGE FUNCTION ERROR READER
     ========================================= */
 
     async function getFunctionErrorMessage(error) {
-        let message = error?.message || "Unable to create administrator account.";
+        let message = error?.message ||
+            "Unable to create administrator account.";
 
         if (error?.context) {
             try {
@@ -621,8 +622,6 @@ document.addEventListener("DOMContentLoaded", () => {
             setLoading(form, true, "Create Admin");
 
             try {
-                /* GET CURRENT AUTHENTICATED SESSION */
-
                 const {
                     data: { session },
                     error: sessionError
@@ -646,8 +645,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     userId: session.user?.id
                 });
 
-                /* CALL EDGE FUNCTION WITH USER ACCESS TOKEN */
-
                 const { data, error } = await supabase.functions.invoke(
                     "create-admin",
                     {
@@ -663,10 +660,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
                 if (error) {
-                    const errorMessage =
-                        await getFunctionErrorMessage(error);
-
-                    throw new Error(errorMessage);
+                    throw new Error(
+                        await getFunctionErrorMessage(error)
+                    );
                 }
 
                 if (data?.error) {
@@ -675,7 +671,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (data?.success === false) {
                     throw new Error(
-                        data.message || "Unable to create administrator account."
+                        data.message ||
+                        "Unable to create administrator account."
                     );
                 }
 
@@ -846,7 +843,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================
        INITIALIZE NOTIFICATIONS
-       No admin authentication or redirects here.
     ========================================= */
 
     loadApplicantNotificationCount();
