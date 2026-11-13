@@ -1,414 +1,593 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Explore career opportunities at HSN Philippines. Find your next opportunity and grow with our team.">
     <meta name="theme-color" content="#09251c">
+
     <title>Careers | HSN Philippines</title>
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="career.css">
 </head>
+
 <body class="career-page">
 
-<header class="header">
-    <div class="logo">
-        <a href="index.html">
-            <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
-        </a>
-    </div>
+    <header class="header">
 
-    <nav class="navigation" id="mainNavigation">
-        <a href="about.html">About</a>
-        <a href="services.html">Services</a>
-        <a href="index.html#location">Location</a>
-        <a href="career.html" class="career-nav-active">Careers</a>
-        <a href="clients.html">Clients</a>
-        <a href="index.html#announcements">Announcements</a>
-        <a href="dps.html">Data Privacy Statement</a>
-        <button type="button" class="mobile-login-trigger" id="mobileLoginTrigger">
-            <span class="user-icon-small">♙</span>
-            Admin Login
-        </button>
-    </nav>
-
-    <div class="header-actions">
-        <button type="button" class="admin-login-trigger" id="adminLoginTrigger"
-            aria-label="Admin Login" title="Admin Login">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="8" r="3.5"></circle>
-                <path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5"></path>
-            </svg>
-        </button>
-
-        <button class="menu-toggle" id="menuToggle" type="button"
-            aria-label="Toggle navigation" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
-    </div>
-</header>
-
-<div class="admin-modal-overlay" id="adminLoginModal" aria-hidden="true">
-    <div class="admin-login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-        <button type="button" class="admin-modal-close" id="closeAdminModal"
-            aria-label="Close login">&times;</button>
-
-        <div class="login-heading">
-            <span class="login-eyebrow">RESTRICTED ACCESS</span>
-            <h2 id="loginTitle">Admin <span>Portal.</span></h2>
-            <p>Sign in to access the HSN administration portal.</p>
+        <div class="logo">
+            <a href="index.html">
+                <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
+            </a>
         </div>
 
-        <form id="adminLoginForm">
-            <div class="login-field">
-                <label for="adminEmail">Email Address</label>
-                <div class="login-input-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                        <path d="m4 7 8 6 8-6"></path>
-                    </svg>
-                    <input type="email" id="adminEmail"
-                        placeholder="Enter your admin email"
-                        autocomplete="username" required>
-                </div>
-            </div>
+        <nav class="navigation" id="mainNavigation">
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="index.html#location">Location</a>
+            <a href="career.html" class="career-nav-active">Careers</a>
+            <a href="clients.html">Clients</a>
+            <a href="index.html#announcements">Announcements</a>
+            <a href="dps.html">Data Privacy Statement</a>
 
-            <div class="login-field">
-                <label for="adminPassword">Password</label>
-                <div class="login-input-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="4" y="10" width="16" height="11" rx="2"></rect>
-                        <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                    </svg>
-                    <input type="password" id="adminPassword"
-                        placeholder="Enter your password"
-                        autocomplete="current-password" required>
-                    <button type="button" class="password-toggle" id="togglePassword">SHOW</button>
-                </div>
-            </div>
-
-            <div class="login-error" id="loginError" role="alert"></div>
-
-            <button type="submit" class="admin-login-submit" id="adminLoginSubmit">
-                <span>Sign In to Admin Portal</span>
-                <span class="login-arrow">→</span>
+            <button type="button" class="mobile-login-trigger" id="mobileLoginTrigger">
+                <span class="user-icon-small">♙</span>
+                Admin Login
             </button>
-        </form>
+        </nav>
 
-        <div class="login-security">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 3 4.5 6v5.5c0 4.5 3.2 7.5 7.5 9.5 4.3-2 7.5-5 7.5-9.5V6L12 3Z"></path>
-                <path d="m9 12 2 2 4-4"></path>
-            </svg>
-            Authorized personnel only
+        <div class="header-actions">
+
+            <button
+                type="button"
+                class="admin-login-trigger"
+                id="adminLoginTrigger"
+                aria-label="Admin Login"
+                title="Admin Login"
+            >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.5"></circle>
+                    <path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5"></path>
+                </svg>
+            </button>
+
+            <button
+                class="menu-toggle"
+                id="menuToggle"
+                type="button"
+                aria-label="Toggle navigation"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
         </div>
+
+    </header>
+
+    <!-- ADMIN LOGIN MODAL -->
+
+    <div class="admin-modal-overlay" id="adminLoginModal" aria-hidden="true">
+
+        <div class="admin-login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+
+            <button type="button" class="admin-modal-close" id="closeAdminModal" aria-label="Close login">
+                &times;
+            </button>
+
+            <div class="login-heading">
+                <span class="login-eyebrow">RESTRICTED ACCESS</span>
+                <h2 id="loginTitle">Admin <span>Portal.</span></h2>
+                <p>Sign in to access the HSN administration portal.</p>
+            </div>
+
+            <form id="adminLoginForm">
+
+                <div class="login-field">
+                    <label for="adminEmail">Email Address</label>
+
+                    <div class="login-input-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                            <path d="m4 7 8 6 8-6"></path>
+                        </svg>
+
+                        <input
+                            type="email"
+                            id="adminEmail"
+                            placeholder="Enter your admin email"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="adminPassword">Password</label>
+
+                    <div class="login-input-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                        </svg>
+
+                        <input
+                            type="password"
+                            id="adminPassword"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            SHOW
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-error" id="loginError" role="alert"></div>
+
+                <button type="submit" class="admin-login-submit" id="adminLoginSubmit">
+                    <span>Sign In to Admin Portal</span>
+                    <span class="login-arrow">→</span>
+                </button>
+
+            </form>
+
+            <div class="login-security">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3 4.5 6v5.5c0 4.5 3.2 7.5 7.5 9.5 4.3-2 7.5-5 7.5-9.5V6L12 3Z"></path>
+                    <path d="m9 12 2 2 4-4"></path>
+                </svg>
+                Authorized personnel only
+            </div>
+
+        </div>
+
     </div>
-</div>
 
-<main>
-    <section class="career-hero">
-        <div class="career-hero-background"></div>
+    <main>
 
-        <div class="career-hero-container">
-            <div class="career-hero-content">
-                <div class="career-eyebrow">
-                    <span class="career-eyebrow-line"></span>
-                    CAREERS AT HSN PHILIPPINES
-                </div>
+        <!-- HERO -->
 
-                <h1>Your Future.<br>Your <span>Opportunity.</span></h1>
+        <section class="career-hero">
 
-                <p>
-                    Be part of a team that connects people, businesses,
-                    and technology. Discover opportunities to grow,
-                    contribute, and make an impact with HSN Philippines.
-                </p>
+            <div class="career-hero-background"></div>
 
-                <a href="#openPositions" class="career-primary-button">
-                    Explore Opportunities <span>↗</span>
-                </a>
+            <div class="career-hero-container">
 
-                <div class="career-hero-caption">
-                    <span class="career-caption-dot"></span>
-                    BUILD SOMETHING MEANINGFUL WITH US
-                </div>
-            </div>
+                <div class="career-hero-content">
 
-            <div class="career-hero-art" aria-hidden="true">
-                <div class="career-art-orbit orbit-one"></div>
-                <div class="career-art-orbit orbit-two"></div>
-                <div class="career-art-orbit orbit-three"></div>
-
-                <div class="career-art-center">
-                    <span>HSN</span>
-                    <small>PHILIPPINES</small>
-                </div>
-
-                <div class="career-art-floating career-float-one">
-                    <span>01</span><small>PEOPLE</small>
-                </div>
-                <div class="career-art-floating career-float-two">
-                    <span>02</span><small>PURPOSE</small>
-                </div>
-                <div class="career-art-floating career-float-three">
-                    <span>03</span><small>PROGRESS</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="career-hero-bottom">
-            <span>HIGHPOINT SERVICES NETWORK PHILIPPINES, INC.</span>
-            <span>PEOPLE. PURPOSE. PROGRESS.</span>
-        </div>
-    </section>
-
-    <section class="career-introduction">
-        <div class="career-section-label">
-            <span>01</span> WHO WE ARE
-        </div>
-
-        <div class="career-introduction-content">
-            <h2>A career that moves<br><span>you forward.</span></h2>
-
-            <p>
-                At Highpoint Services Network Philippines, Inc.,
-                we recognize that our people are our greatest strength.
-                We value individuals who bring fresh perspectives,
-                dedication, and a commitment to excellence.
-            </p>
-
-            <p>
-                Whether you are starting your professional journey
-                or looking for your next career challenge, discover
-                opportunities to learn, contribute, and grow with us.
-            </p>
-        </div>
-    </section>
-
-    <section class="career-benefits">
-        <div class="career-benefits-heading">
-            <div>
-                <div class="career-section-label">
-                    <span>02</span> LIFE AT HSN
-                </div>
-                <h2>Grow with <span>purpose.</span></h2>
-            </div>
-
-            <p>
-                Be part of a workplace where your skills,
-                ideas, and contributions matter.
-            </p>
-        </div>
-
-        <div class="career-benefits-grid">
-            <article class="career-benefit-card">
-                <div class="career-benefit-top">
-                    <span class="career-benefit-icon">↗</span>
-                    <span class="career-benefit-number">01</span>
-                </div>
-                <h3>Professional Growth</h3>
-                <p>
-                    Explore opportunities to develop your skills,
-                    strengthen your experience, and move forward
-                    in your professional journey.
-                </p>
-                <div class="career-benefit-line"></div>
-            </article>
-
-            <article class="career-benefit-card">
-                <div class="career-benefit-top">
-                    <span class="career-benefit-icon">◎</span>
-                    <span class="career-benefit-number">02</span>
-                </div>
-                <h3>Meaningful Contribution</h3>
-                <p>
-                    Contribute to a team delivering ICT services,
-                    business solutions, customer experience,
-                    and technology support.
-                </p>
-                <div class="career-benefit-line"></div>
-            </article>
-
-            <article class="career-benefit-card">
-                <div class="career-benefit-top">
-                    <span class="career-benefit-icon">✦</span>
-                    <span class="career-benefit-number">03</span>
-                </div>
-                <h3>Shared Success</h3>
-                <p>
-                    Work with people who value teamwork,
-                    accountability, continuous improvement,
-                    and delivering quality results.
-                </p>
-                <div class="career-benefit-line"></div>
-            </article>
-        </div>
-    </section>
-
-    <section class="career-openings" id="openPositions">
-        <div class="career-openings-container">
-            <div class="career-openings-heading">
-                <div class="career-openings-title">
-                    <div class="career-section-label">
-                        <span>03</span> JOIN OUR TEAM
+                    <div class="career-eyebrow">
+                        <span class="career-eyebrow-line"></span>
+                        CAREERS AT HSN PHILIPPINES
                     </div>
 
-                    <h2>Explore career<br><span>opportunities.</span></h2>
+                    <h1>
+                        Your Future.<br>
+                        Your <span>Opportunity.</span>
+                    </h1>
 
                     <p>
-                        Find a position that matches your skills,
-                        experience, and career aspirations.
+                        Be part of a team that connects people, businesses,
+                        and technology. Discover opportunities to grow,
+                        contribute, and make an impact with HSN Philippines.
                     </p>
+
+                    <a href="#openPositions" class="career-primary-button">
+                        Explore Opportunities
+                        <span>↗</span>
+                    </a>
+
+                    <div class="career-hero-caption">
+                        <span class="career-caption-dot"></span>
+                        BUILD SOMETHING MEANINGFUL WITH US
+                    </div>
+
                 </div>
 
-                <div class="career-opening-counter">
-                    <strong id="publicCareerCount">—</strong>
-                    <span>OPEN POSITIONS</span>
-                    <div class="career-counter-line"></div>
+                <div class="career-hero-art" aria-hidden="true">
+
+                    <div class="career-art-orbit orbit-one"></div>
+                    <div class="career-art-orbit orbit-two"></div>
+                    <div class="career-art-orbit orbit-three"></div>
+
+                    <div class="career-art-center">
+                        <span>HSN</span>
+                        <small>PHILIPPINES</small>
+                    </div>
+
+                    <div class="career-art-floating career-float-one">
+                        <span>01</span>
+                        <small>PEOPLE</small>
+                    </div>
+
+                    <div class="career-art-floating career-float-two">
+                        <span>02</span>
+                        <small>PURPOSE</small>
+                    </div>
+
+                    <div class="career-art-floating career-float-three">
+                        <span>03</span>
+                        <small>PROGRESS</small>
+                    </div>
+
                 </div>
+
             </div>
 
-            <div class="career-search-toolbar">
-                <div class="career-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7"></circle>
-                        <path d="m16 16 4 4"></path>
-                    </svg>
-
-                    <input type="search" id="publicCareerSearch"
-                        placeholder="Search positions, departments, or locations..."
-                        aria-label="Search career positions">
-                </div>
-
-                <div class="career-department-filter">
-                    <select id="publicCareerDepartment" aria-label="Filter by department">
-                        <option value="all">All Departments</option>
-                    </select>
-                    <span>⌄</span>
-                </div>
+            <div class="career-hero-bottom">
+                <span>HIGHPOINT SERVICES NETWORK PHILIPPINES, INC.</span>
+                <span>PEOPLE. PURPOSE. PROGRESS.</span>
             </div>
 
-            <div class="career-list-heading">
-                <span id="careerResultsLabel">AVAILABLE POSITIONS</span>
-                <span id="careerLastUpdated"></span>
+        </section>
+
+        <!-- INTRODUCTION -->
+
+        <section class="career-introduction">
+
+            <div class="career-section-label">
+                <span>01</span>
+                WHO WE ARE
             </div>
 
-            <div class="career-list" id="publicCareerGrid">
-                <div class="career-loading-state">
-                    <span class="career-loader"></span>
-                    <p>Loading available opportunities...</p>
-                </div>
-            </div>
+            <div class="career-introduction-content">
 
-            <div class="career-no-results" id="careerNoResults" hidden>
-                <div class="career-empty-icon">⌕</div>
-                <h3>No positions found.</h3>
+                <h2>
+                    A career that moves<br>
+                    <span>you forward.</span>
+                </h2>
+
                 <p>
-                    We couldn't find any opportunities matching
-                    your search. Try another keyword or department.
+                    At Highpoint Services Network Philippines, Inc.,
+                    we recognize that our people are our greatest strength.
+                    We value individuals who bring fresh perspectives,
+                    dedication, and a commitment to excellence.
                 </p>
-                <button type="button" id="clearCareerFilters">Clear Search</button>
-            </div>
-        </div>
-    </section>
 
-    <section class="career-cta">
-        <div class="career-cta-content">
-            <div class="career-eyebrow">
-                <span class="career-eyebrow-line"></span>
-                YOUR NEXT CHAPTER STARTS HERE
+                <p>
+                    Whether you are starting your professional journey
+                    or looking for your next career challenge, discover
+                    opportunities to learn, contribute, and grow with us.
+                </p>
+
             </div>
 
-            <h2>Ready to make<br><span>your next move?</span></h2>
-
-            <p>
-                Discover the opportunities waiting for you
-                at HSN Philippines.
-            </p>
-
-            <a href="#openPositions" class="career-primary-button career-cta-button">
-                View Open Positions <span>↗</span>
-            </a>
-        </div>
-
-        <div class="career-cta-decoration" aria-hidden="true">HSN</div>
-    </section>
-</main>
-
-<div class="career-detail-overlay" id="careerDetailModal" aria-hidden="true">
-    <article class="career-detail-modal" role="dialog" aria-modal="true"
-        aria-labelledby="detailTitle">
-
-        <button type="button" class="career-detail-close"
-            id="closeCareerDetails" aria-label="Close job details">&times;</button>
-
-        <div class="career-detail-heading">
-            <span class="career-detail-eyebrow">
-                HSN PHILIPPINES / CAREER OPPORTUNITY
-            </span>
-            <span class="career-detail-status">OPEN POSITION</span>
-        </div>
-
-        <h2 id="detailTitle">Position Title</h2>
-        <div class="career-detail-meta" id="detailMeta"></div>
-        <div class="career-detail-divider"></div>
-
-        <section class="career-detail-section">
-            <h3>Job Description</h3>
-            <div id="detailDescription"></div>
         </section>
 
-        <section class="career-detail-section" id="requirementsSection">
-            <h3>Qualifications and Requirements</h3>
-            <div id="detailRequirements"></div>
+        <!-- WHY JOIN HSN -->
+
+        <section class="career-benefits">
+
+            <div class="career-benefits-heading">
+
+                <div>
+                    <div class="career-section-label">
+                        <span>02</span>
+                        LIFE AT HSN
+                    </div>
+
+                    <h2>
+                        Grow with <span>purpose.</span>
+                    </h2>
+                </div>
+
+                <p>
+                    Be part of a workplace where your skills,
+                    ideas, and contributions matter.
+                </p>
+
+            </div>
+
+            <div class="career-benefits-grid">
+
+                <article class="career-benefit-card">
+
+                    <div class="career-benefit-top">
+                        <span class="career-benefit-icon">↗</span>
+                        <span class="career-benefit-number">01</span>
+                    </div>
+
+                    <h3>Professional Growth</h3>
+
+                    <p>
+                        Explore opportunities to develop your skills,
+                        strengthen your experience, and move forward
+                        in your professional journey.
+                    </p>
+
+                    <div class="career-benefit-line"></div>
+
+                </article>
+
+                <article class="career-benefit-card">
+
+                    <div class="career-benefit-top">
+                        <span class="career-benefit-icon">◎</span>
+                        <span class="career-benefit-number">02</span>
+                    </div>
+
+                    <h3>Meaningful Contribution</h3>
+
+                    <p>
+                        Contribute to a team delivering ICT services,
+                        business solutions, customer experience,
+                        and technology support.
+                    </p>
+
+                    <div class="career-benefit-line"></div>
+
+                </article>
+
+                <article class="career-benefit-card">
+
+                    <div class="career-benefit-top">
+                        <span class="career-benefit-icon">✦</span>
+                        <span class="career-benefit-number">03</span>
+                    </div>
+
+                    <h3>Shared Success</h3>
+
+                    <p>
+                        Work with people who value teamwork,
+                        accountability, continuous improvement,
+                        and delivering quality results.
+                    </p>
+
+                    <div class="career-benefit-line"></div>
+
+                </article>
+
+            </div>
+
         </section>
 
-        <div class="career-detail-footer">
-            <span>HIGHPOINT SERVICES NETWORK PHILIPPINES, INC.</span>
-            <button type="button" id="closeCareerDetailsBottom">Close Details</button>
-        </div>
-    </article>
-</div>
+        <!-- OPEN POSITIONS -->
 
-<footer class="hsn-footer">
-    <div class="hsn-footer-container">
-        <div class="hsn-footer-brand">
-            <a href="index.html" class="hsn-footer-logo">
-                <img src="images/hsn.jpg" alt="HSN Philippines Logo">
-            </a>
-        </div>
+        <section class="career-openings" id="openPositions">
 
-        <div class="hsn-footer-column">
-            <h3>Company</h3>
-            <a href="about.html">About Us</a>
-            <a href="services.html">Services</a>
-        </div>
+            <div class="career-openings-container">
 
-        <div class="hsn-footer-column">
-            <h3>Quick Links</h3>
-            <a href="clients.html">Clients</a>
-            <a href="#">Service Status Inquiry</a>
-            <a href="#">E-Support</a>
-        </div>
+                <div class="career-openings-heading">
 
-        <div class="hsn-footer-column">
-            <h3>Support</h3>
-            <a href="#">Service Centre's</a>
-            <a href="#">Contact Us</a>
-        </div>
+                    <div class="career-openings-title">
+
+                        <div class="career-section-label">
+                            <span>03</span>
+                            JOIN OUR TEAM
+                        </div>
+
+                        <h2>
+                            Explore career<br>
+                            <span>opportunities.</span>
+                        </h2>
+
+                        <p>
+                            Find a position that matches your skills,
+                            experience, and career aspirations.
+                        </p>
+
+                    </div>
+
+                    <div class="career-opening-counter">
+                        <strong id="publicCareerCount">—</strong>
+                        <span>OPEN POSITIONS</span>
+                        <div class="career-counter-line"></div>
+                    </div>
+
+                </div>
+
+                <div class="career-search-toolbar">
+
+                    <div class="career-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m16 16 4 4"></path>
+                        </svg>
+
+                        <input
+                            type="search"
+                            id="publicCareerSearch"
+                            placeholder="Search positions, departments, or locations..."
+                            aria-label="Search career positions"
+                        >
+                    </div>
+
+                    <div class="career-department-filter">
+                        <select id="publicCareerDepartment" aria-label="Filter by department">
+                            <option value="all">All Departments</option>
+                        </select>
+
+                        <span>⌄</span>
+                    </div>
+
+                </div>
+
+                <div class="career-list-heading">
+                    <span id="careerResultsLabel">AVAILABLE POSITIONS</span>
+                    <span id="careerLastUpdated"></span>
+                </div>
+
+                <div class="career-list" id="publicCareerGrid">
+
+                    <div class="career-loading-state">
+                        <span class="career-loader"></span>
+                        <p>Loading available opportunities...</p>
+                    </div>
+
+                </div>
+
+                <div class="career-no-results" id="careerNoResults" hidden>
+
+                    <div class="career-empty-icon">⌕</div>
+
+                    <h3>No positions found.</h3>
+
+                    <p>
+                        We couldn't find any opportunities matching
+                        your search. Try another keyword or department.
+                    </p>
+
+                    <button type="button" id="clearCareerFilters">
+                        Clear Search
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- FINAL CALL TO ACTION -->
+
+        <section class="career-cta">
+
+            <div class="career-cta-content">
+
+                <div class="career-eyebrow">
+                    <span class="career-eyebrow-line"></span>
+                    YOUR NEXT CHAPTER STARTS HERE
+                </div>
+
+                <h2>
+                    Ready to make<br>
+                    <span>your next move?</span>
+                </h2>
+
+                <p>
+                    Discover the opportunities waiting for you
+                    at HSN Philippines.
+                </p>
+
+                <a href="#openPositions" class="career-primary-button career-cta-button">
+                    View Open Positions
+                    <span>↗</span>
+                </a>
+
+            </div>
+
+            <div class="career-cta-decoration" aria-hidden="true">
+                HSN
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JOB DETAILS MODAL -->
+
+    <div class="career-detail-overlay" id="careerDetailModal" aria-hidden="true">
+
+        <article
+            class="career-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detailTitle"
+        >
+
+            <button
+                type="button"
+                class="career-detail-close"
+                id="closeCareerDetails"
+                aria-label="Close job details"
+            >
+                &times;
+            </button>
+
+            <div class="career-detail-heading">
+
+                <span class="career-detail-eyebrow">
+                    HSN PHILIPPINES / CAREER OPPORTUNITY
+                </span>
+
+                <span class="career-detail-status">
+                    OPEN POSITION
+                </span>
+
+            </div>
+
+            <h2 id="detailTitle">Position Title</h2>
+
+            <div class="career-detail-meta" id="detailMeta"></div>
+
+            <div class="career-detail-divider"></div>
+
+            <section class="career-detail-section">
+                <h3>Job Description</h3>
+                <div id="detailDescription"></div>
+            </section>
+
+            <section class="career-detail-section" id="requirementsSection">
+                <h3>Qualifications and Requirements</h3>
+                <div id="detailRequirements"></div>
+            </section>
+
+            <div class="career-detail-footer">
+
+                <span>HIGHPOINT SERVICES NETWORK PHILIPPINES, INC.</span>
+
+                <button type="button" id="closeCareerDetailsBottom">
+                    Close Details
+                </button>
+
+            </div>
+
+        </article>
+
     </div>
 
-    <div class="hsn-footer-bottom">
-        <div class="hsn-footer-bottom-inner">
-            <p>Copyright © 2021 HSN - All rights reserved.</p>
-            <a href="#">Terms of Service</a>
-        </div>
-    </div>
-</footer>
+    <!-- FOOTER -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
-<script src="career.js"></script>
+    <footer class="hsn-footer">
+
+        <div class="hsn-footer-container">
+
+            <div class="hsn-footer-brand">
+                <a href="index.html" class="hsn-footer-logo">
+                    <img src="images/hsn.jpg" alt="HSN Philippines Logo">
+                </a>
+            </div>
+
+            <div class="hsn-footer-column">
+                <h3>Company</h3>
+                <a href="about.html">About Us</a>
+                <a href="services.html">Services</a>
+            </div>
+
+            <div class="hsn-footer-column">
+                <h3>Quick Links</h3>
+                <a href="clients.html">Clients</a>
+                <a href="#">Service Status Inquiry</a>
+                <a href="#">E-Support</a>
+            </div>
+
+            <div class="hsn-footer-column">
+                <h3>Support</h3>
+                <a href="#">Service Centre's</a>
+                <a href="#">Contact Us</a>
+            </div>
+
+        </div>
+
+        <div class="hsn-footer-bottom">
+            <div class="hsn-footer-bottom-inner">
+                <p>Copyright © 2021 HSN - All rights reserved.</p>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script src="career.js"></script>
+
 </body>
 </html>
