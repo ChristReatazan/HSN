@@ -1,463 +1,557 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>HSN Philippines | Admin Portal</title>
+    <meta name="theme-color" content="#09251c">
 
-    <link rel="stylesheet" href="style.css">
+    <title>HSN Philippines | Admin Dashboard</title>
+
     <link rel="stylesheet" href="admin.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="admin-page">
+<body>
 
-<header class="header">
+    <!-- =====================================
+         LOGIN SECTION
+    ====================================== -->
 
-    <div class="logo">
-        <a href="index.html">
-            <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
-        </a>
-    </div>
+    <section class="admin-login-page" id="adminLoginPage">
 
-    <nav class="navigation" id="mainNavigation">
-        <a href="index.html">View Website</a>
-        <a href="about.html">About</a>
-        <a href="services.html">Services</a>
-        <a href="#careerManagement">Careers</a>
-        <a href="clients.html">Clients</a>
-        <a href="dps.html">Data Privacy</a>
-    </nav>
+        <div class="admin-login-card">
 
-    <div class="header-actions">
-
-        <div class="admin-profile">
-            <div class="admin-avatar" id="adminAvatar">A</div>
-
-            <div class="admin-profile-info">
-                <strong id="adminName">Administrator</strong>
-                <span>Administrator</span>
+            <div class="admin-brand">
+                <h1>HSN<span>PHILIPPINES</span></h1>
+                <p>ADMINISTRATION PORTAL</p>
             </div>
 
-            <button type="button" id="logoutButton" class="admin-logout">
-                Sign Out
-            </button>
-        </div>
-
-        <button
-            class="menu-toggle"
-            id="menuToggle"
-            aria-label="Toggle navigation"
-            aria-expanded="false"
-            type="button"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-    </div>
-
-</header>
-
-<main>
-
-    <section class="admin-hero">
-
-        <div class="admin-hero-content">
-
-            <span class="admin-eyebrow">
-                HSN PHILIPPINES / ADMINISTRATION
-            </span>
-
-            <h1>
-                Welcome to the <span>Admin Portal.</span>
-            </h1>
-
-            <p>
-                Manage and maintain the HSN Philippines website
-                content and career opportunities.
-            </p>
-
-            <div class="admin-hero-actions">
-                <a href="#careerManagement" class="admin-primary-link">
-                    Manage Careers <span>→</span>
-                </a>
-
-                <a href="index.html" class="admin-secondary-link">
-                    View Public Website
-                </a>
+            <div class="admin-login-heading">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your administration dashboard.</p>
             </div>
 
-        </div>
+            <form id="adminLoginForm">
 
-        <div class="admin-hero-decoration">
-            <div class="admin-decoration-circle">
-                <div class="admin-decoration-inner">
-                    <span>HSN</span>
-                    <small>ADMIN PORTAL</small>
+                <div class="form-group">
+                    <label for="adminEmail">Email Address</label>
+                    <input
+                        type="email"
+                        id="adminEmail"
+                        placeholder="Enter your email"
+                        required
+                    >
                 </div>
-            </div>
-        </div>
 
-    </section>
-
-    <section class="admin-overview">
-
-        <div class="admin-section-heading">
-            <div>
-                <span class="admin-section-eyebrow">OVERVIEW</span>
-                <h2>Dashboard <span>Overview.</span></h2>
-                <p>Quick overview of your career content.</p>
-            </div>
-
-            <div class="admin-date" id="adminCurrentDate"></div>
-        </div>
-
-        <div class="admin-stat-grid">
-
-            <article class="admin-stat-card">
-                <div class="admin-stat-top">
-                    <span>Total Positions</span>
-                    <span class="admin-stat-icon">▤</span>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        placeholder="Enter your password"
+                        required
+                    >
                 </div>
-                <strong id="totalCareers">0</strong>
-                <small>All career records</small>
-            </article>
 
-            <article class="admin-stat-card">
-                <div class="admin-stat-top">
-                    <span>Published</span>
-                    <span class="admin-stat-icon published-icon">✓</span>
-                </div>
-                <strong id="publishedCareers">0</strong>
-                <small>Visible to website visitors</small>
-            </article>
+                <button type="submit" id="adminLoginButton">
+                    Sign In
+                </button>
 
-            <article class="admin-stat-card">
-                <div class="admin-stat-top">
-                    <span>Drafts</span>
-                    <span class="admin-stat-icon draft-icon">◷</span>
-                </div>
-                <strong id="draftCareers">0</strong>
-                <small>Unpublished positions</small>
-            </article>
+                <p id="adminLoginMessage" role="alert"></p>
+
+            </form>
 
         </div>
 
     </section>
 
-    <section class="career-management" id="careerManagement">
 
-        <div class="career-heading">
+    <!-- =====================================
+         ADMIN DASHBOARD
+    ====================================== -->
 
-            <div>
-                <span class="admin-section-eyebrow">CONTENT MANAGEMENT</span>
-                <h2>Career <span>Management.</span></h2>
-                <p>
-                    Manage the job opportunities displayed on the
-                    HSN Philippines public website.
-                </p>
+    <div class="admin-dashboard" id="adminDashboard" hidden>
+
+        <!-- SIDEBAR -->
+
+        <aside class="admin-sidebar" id="adminSidebar">
+
+            <div class="sidebar-brand">
+                <h2>HSN<span>PH</span></h2>
+                <p>ADMIN PORTAL</p>
             </div>
 
-            <button type="button" class="career-add-button" id="addCareerButton">
-                <span>＋</span> Add New Position
-            </button>
+            <nav class="sidebar-navigation">
 
-        </div>
+                <a href="#dashboardOverview" class="sidebar-link active">
+                    <span>01</span>
+                    Dashboard
+                </a>
 
-        <div class="career-panel">
+                <a href="#careerManagement" class="sidebar-link">
+                    <span>02</span>
+                    Career Management
+                </a>
 
-            <div class="career-panel-header">
+                <a href="#applicantManagement" class="sidebar-link">
+                    <span>03</span>
+                    Applicants
+                </a>
 
-                <div>
-                    <h3>Job Opportunities</h3>
-                    <p>Manage your published and draft job positions.</p>
-                </div>
+            </nav>
 
-                <div class="career-toolbar">
+            <div class="sidebar-footer">
+                <p>HSN Philippines</p>
+                <span>Administration System</span>
 
-                    <div class="career-search">
-                        <span>⌕</span>
-                        <input
-                            type="search"
-                            id="careerSearch"
-                            placeholder="Search positions..."
-                        >
+                <button type="button" id="adminLogoutButton">
+                    Sign Out
+                </button>
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="admin-main">
+
+            <!-- TOPBAR -->
+
+            <header class="admin-topbar">
+
+                <div class="topbar-left">
+
+                    <button
+                        type="button"
+                        id="toggleAdminSidebar"
+                        aria-label="Toggle sidebar"
+                    >
+                        ☰
+                    </button>
+
+                    <div>
+                        <span>ADMINISTRATION</span>
+                        <h2>Dashboard</h2>
                     </div>
 
-                    <select id="careerFilter" aria-label="Filter positions">
-                        <option value="all">All Positions</option>
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                    </select>
+                </div>
 
-                    <button type="button" id="refreshCareers" class="career-refresh-button">
-                        ↻ Refresh
+                <div class="admin-user-info">
+                    <div class="admin-user-avatar">A</div>
+
+                    <div>
+                        <strong id="adminUserEmail">Administrator</strong>
+                        <span>Administrator</span>
+                    </div>
+                </div>
+
+            </header>
+
+
+            <!-- =====================================
+                 OVERVIEW
+            ====================================== -->
+
+            <section class="admin-content-section" id="dashboardOverview">
+
+                <div class="section-heading">
+                    <div>
+                        <span class="section-eyebrow">OVERVIEW</span>
+                        <h1>Welcome to HSN Admin</h1>
+                        <p>Manage recruitment and career opportunities.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-stat-grid">
+
+                    <div class="dashboard-stat-card">
+                        <span>Total Careers</span>
+                        <h2 id="totalCareers">0</h2>
+                        <p>Career records</p>
+                    </div>
+
+                    <div class="dashboard-stat-card">
+                        <span>Published Careers</span>
+                        <h2 id="publishedCareers">0</h2>
+                        <p>Visible positions</p>
+                    </div>
+
+                    <div class="dashboard-stat-card">
+                        <span>Total Applicants</span>
+                        <h2 id="totalApplicants">0</h2>
+                        <p>Submitted applications</p>
+                    </div>
+
+                    <div class="dashboard-stat-card">
+                        <span>Pending Applications</span>
+                        <h2 id="pendingApplicants">0</h2>
+                        <p>Awaiting review</p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================
+                 CAREER MANAGEMENT
+            ====================================== -->
+
+            <section class="admin-content-section" id="careerManagement">
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-eyebrow">RECRUITMENT</span>
+                        <h2>Career Management</h2>
+                        <p>Create, update, publish, and manage career listings.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="addCareerButton"
+                        class="admin-primary-button"
+                    >
+                        + Add New Position
                     </button>
 
                 </div>
 
-            </div>
 
-            <div class="career-message" id="careerMessage" role="status"></div>
+                <!-- CAREER SEARCH -->
 
-            <div class="career-table-wrapper">
+                <div class="career-admin-toolbar">
 
-                <table class="career-table">
+                    <input
+                        type="search"
+                        id="careerAdminSearch"
+                        placeholder="Search career positions..."
+                    >
 
-                    <thead>
-                        <tr>
-                            <th>Position</th>
-                            <th>Department</th>
-                            <th>Location</th>
-                            <th>Employment Type</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <select id="careerAdminFilter">
+                        <option value="all">All Positions</option>
+                        <option value="published">Published</option>
+                        <option value="unpublished">Unpublished</option>
+                    </select>
 
-                    <tbody id="careerTableBody">
+                </div>
 
-                        <tr>
-                            <td colspan="6" class="career-empty">
-                                Loading career positions...
-                            </td>
-                        </tr>
 
-                    </tbody>
+                <!-- CAREER TABLE -->
 
-                </table>
+                <div class="admin-table-container">
 
-            </div>
+                    <table class="admin-table">
 
-            <div class="career-table-footer">
-                <span id="careerResultCount">0 positions</span>
-                <span>HSN Philippines Career Management</span>
-            </div>
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th>Department</th>
+                                <th>Location</th>
+                                <th>Employment Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-        </div>
+                        <tbody id="careerAdminTableBody">
 
-        <div class="career-information">
-            <span class="information-icon">i</span>
-            <p>
-                Only published positions will be available for public
-                viewing. Draft positions remain accessible only to
-                authorized administrators.
-            </p>
-        </div>
+                            <tr>
+                                <td colspan="6">
+                                    Loading career listings...
+                                </td>
+                            </tr>
 
-    </section>
+                        </tbody>
 
-</main>
+                    </table>
 
-<footer class="hsn-footer">
+                </div>
 
-    <div class="hsn-footer-container">
+            </section>
 
-        <div class="hsn-footer-brand">
-            <a href="index.html" class="hsn-footer-logo">
-                <img src="images/hsn.jpg" alt="HSN Philippines Logo">
-            </a>
-        </div>
 
-        <div class="hsn-footer-column">
-            <h3>Company</h3>
-            <a href="about.html">About Us</a>
-            <a href="services.html">Services</a>
-        </div>
+            <!-- =====================================
+                 APPLICANT MANAGEMENT
+            ====================================== -->
 
-        <div class="hsn-footer-column">
-            <h3>Quick Links</h3>
-            <a href="clients.html">Clients</a>
-            <a href="index.html#careers">Careers</a>
-        </div>
+            <section class="admin-content-section" id="applicantManagement">
 
-        <div class="hsn-footer-column">
-            <h3>Administration</h3>
-            <a href="index.html">Public Website</a>
-            <a href="#" id="footerLogout">Sign Out</a>
-        </div>
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-eyebrow">RECRUITMENT MANAGEMENT</span>
+                        <h2>Career Applicants</h2>
+                        <p>Review and manage submitted job applications.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="admin-secondary-button"
+                        id="refreshApplicants"
+                    >
+                        ↻ Refresh Applicants
+                    </button>
+
+                </div>
+
+
+                <!-- APPLICANT STATISTICS -->
+
+                <div class="applicant-stats-grid">
+
+                    <div class="applicant-stat-card">
+                        <span>Total Applications</span>
+                        <h3 id="applicantTotalCount">0</h3>
+                    </div>
+
+                    <div class="applicant-stat-card">
+                        <span>Pending</span>
+                        <h3 id="applicantPendingCount">0</h3>
+                    </div>
+
+                    <div class="applicant-stat-card">
+                        <span>Under Review</span>
+                        <h3 id="applicantReviewCount">0</h3>
+                    </div>
+
+                    <div class="applicant-stat-card">
+                        <span>Shortlisted</span>
+                        <h3 id="applicantShortlistedCount">0</h3>
+                    </div>
+
+                    <div class="applicant-stat-card">
+                        <span>Hired</span>
+                        <h3 id="applicantHiredCount">0</h3>
+                    </div>
+
+                </div>
+
+
+                <!-- APPLICANT FILTERS -->
+
+                <div class="applicant-toolbar">
+
+                    <input
+                        type="search"
+                        id="applicantSearch"
+                        placeholder="Search applicant or position..."
+                    >
+
+                    <select id="applicantStatusFilter">
+
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Shortlisted">Shortlisted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Hired">Hired</option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- APPLICANT TABLE -->
+
+                <div class="admin-table-container">
+
+                    <table class="admin-table applicant-table">
+
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Position Applied</th>
+                                <th>Contact Number</th>
+                                <th>Expected Salary</th>
+                                <th>Date Applied</th>
+                                <th>Resume</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="applicantsTableBody">
+
+                            <tr>
+                                <td colspan="7">
+                                    Applicant records will appear here.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- FOOTER -->
+
+            <footer class="admin-footer">
+                <p>© 2026 HSN Philippines. All Rights Reserved.</p>
+                <span>Admin Management Portal</span>
+            </footer>
+
+        </main>
 
     </div>
 
-    <div class="hsn-footer-bottom">
-        <div class="hsn-footer-bottom-inner">
-            <p>Copyright © 2021 HSN - All rights reserved.</p>
-            <a href="dps.html">Data Privacy Statement</a>
-        </div>
-    </div>
 
-</footer>
+    <!-- =====================================
+         CAREER FORM MODAL
+    ====================================== -->
 
-<!-- CAREER MODAL -->
+    <div class="admin-modal" id="careerAdminModal">
 
-<div class="career-modal-overlay" id="careerModal" aria-hidden="true">
+        <div class="admin-modal-content">
 
-    <div class="career-modal" role="dialog" aria-modal="true" aria-labelledby="careerModalTitle">
+            <div class="admin-modal-header">
 
-        <div class="career-modal-header">
+                <div>
+                    <span class="section-eyebrow">CAREER MANAGEMENT</span>
+                    <h2 id="careerModalTitle">Add New Position</h2>
+                </div>
 
-            <div>
-                <span class="admin-section-eyebrow">CAREER CONTENT</span>
-                <h2 id="careerModalTitle">Add New Position</h2>
-                <p>Provide the details of the job opportunity.</p>
+                <button
+                    type="button"
+                    id="closeCareerAdminModal"
+                    aria-label="Close"
+                >
+                    &times;
+                </button>
+
             </div>
 
-            <button
-                type="button"
-                class="career-modal-close"
-                id="closeCareerModal"
-                aria-label="Close modal"
-            >
-                &times;
-            </button>
 
-        </div>
+            <form id="careerAdminForm">
 
-        <form id="careerForm">
+                <input type="hidden" id="careerRecordId">
 
-            <input type="hidden" id="careerId">
+                <div class="form-group">
+                    <label for="careerTitle">Position Title</label>
 
-            <div class="career-form-grid">
-
-                <div class="career-form-field full-width">
-                    <label for="careerTitle">Job Title *</label>
                     <input
                         type="text"
                         id="careerTitle"
-                        placeholder="e.g. Customer Service Representative"
-                        maxlength="180"
                         required
                     >
                 </div>
 
-                <div class="career-form-field">
-                    <label for="careerDepartment">Department *</label>
-                    <input
-                        type="text"
-                        id="careerDepartment"
-                        placeholder="e.g. Operations"
-                        maxlength="120"
-                        required
-                    >
+
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="careerDepartment">Department</label>
+
+                        <input
+                            type="text"
+                            id="careerDepartment"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="careerLocation">Location</label>
+
+                        <input
+                            type="text"
+                            id="careerLocation"
+                            required
+                        >
+                    </div>
+
                 </div>
 
-                <div class="career-form-field">
-                    <label for="careerLocation">Location *</label>
-                    <input
-                        type="text"
-                        id="careerLocation"
-                        placeholder="e.g. Quezon City, Philippines"
-                        maxlength="150"
-                        required
-                    >
-                </div>
 
-                <div class="career-form-field full-width">
-                    <label for="careerEmploymentType">Employment Type *</label>
+                <div class="form-group">
+                    <label for="careerEmploymentType">Employment Type</label>
+
                     <select id="careerEmploymentType" required>
                         <option value="">Select employment type</option>
                         <option value="Full-time">Full-time</option>
                         <option value="Part-time">Part-time</option>
                         <option value="Contract">Contract</option>
-                        <option value="Project-based">Project-based</option>
                         <option value="Internship">Internship</option>
                     </select>
                 </div>
 
-                <div class="career-form-field full-width">
-                    <label for="careerDescription">Job Description *</label>
+
+                <div class="form-group">
+                    <label for="careerDescription">Job Description</label>
+
                     <textarea
                         id="careerDescription"
-                        rows="5"
-                        placeholder="Describe the responsibilities and nature of the role..."
+                        rows="6"
                         required
                     ></textarea>
                 </div>
 
-                <div class="career-form-field full-width">
-                    <label for="careerRequirements">Qualifications and Requirements</label>
+
+                <div class="form-group">
+                    <label for="careerRequirements">Requirements</label>
+
                     <textarea
                         id="careerRequirements"
-                        rows="5"
-                        placeholder="Enter the qualifications and requirements..."
+                        rows="6"
+                        placeholder="Enter each requirement on a new line"
                     ></textarea>
-                    <small>Use a new line for each requirement.</small>
                 </div>
 
-            </div>
 
-            <div class="career-publish-option">
-                <label class="career-switch">
-                    <input type="checkbox" id="careerPublished">
-                    <span class="career-switch-slider"></span>
-                </label>
+                <div class="form-group career-publish-field">
 
-                <div>
-                    <strong>Publish this position</strong>
-                    <small>
-                        When enabled, this position can be displayed
-                        on the public website.
-                    </small>
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="careerIsPublished"
+                        >
+
+                        Publish this position
+
+                    </label>
+
                 </div>
-            </div>
 
-            <div class="career-form-message" id="careerFormMessage" role="alert"></div>
 
-            <div class="career-modal-actions">
+                <div class="admin-modal-actions">
 
-                <button type="button" class="career-cancel-button" id="cancelCareerButton">
-                    Cancel
-                </button>
+                    <button
+                        type="button"
+                        id="cancelCareerForm"
+                        class="admin-secondary-button"
+                    >
+                        Cancel
+                    </button>
 
-                <button type="submit" class="career-save-button" id="saveCareerButton">
-                    Save Position
-                </button>
+                    <button
+                        type="submit"
+                        id="saveCareerButton"
+                        class="admin-primary-button"
+                    >
+                        Save Position
+                    </button>
 
-            </div>
+                </div>
 
-        </form>
+                <p id="careerAdminMessage" role="status"></p>
 
-    </div>
-
-</div>
-
-<!-- DELETE CONFIRMATION MODAL -->
-
-<div class="career-modal-overlay" id="deleteModal" aria-hidden="true">
-
-    <div class="career-delete-modal" role="dialog" aria-modal="true">
-
-        <div class="delete-icon">!</div>
-
-        <h2>Delete Position?</h2>
-
-        <p>
-            Are you sure you want to permanently delete this career
-            position? This action cannot be undone.
-        </p>
-
-        <div class="career-modal-actions">
-
-            <button type="button" class="career-cancel-button" id="cancelDeleteButton">
-                Cancel
-            </button>
-
-            <button type="button" class="career-delete-confirm-button" id="confirmDeleteButton">
-                Delete Position
-            </button>
+            </form>
 
         </div>
 
     </div>
 
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin.js"></script>
+    <!-- =====================================
+         SCRIPTS
+    ====================================== -->
+
+    <script src="admin.js"></script>
 
 </body>
 </html>
