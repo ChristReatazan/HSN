@@ -137,6 +137,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             "Position not available";
     }
 
+    /* =========================================
+       FORMATTED APPLICANT ID
+       HSN-APPLICANT-001
+    ========================================= */
+
+    function getFormattedApplicantId(applicant) {
+        const sortedApplicants = [...applicants].sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+
+            if (dateA !== dateB) {
+                return dateA - dateB;
+            }
+
+            return String(a.id).localeCompare(String(b.id));
+        });
+
+        const index = sortedApplicants.findIndex(
+            item => String(item.id) === String(applicant.id)
+        );
+
+        if (index === -1) {
+            return "HSN-APPLICANT-XXX";
+        }
+
+        return `HSN-APPLICANT-${String(index + 1).padStart(3, "0")}`;
+    }
+
     function showToast(message, type = "success") {
         const container = document.getElementById("toastContainer");
         if (!container) return;
@@ -330,6 +358,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             filtered = filtered.filter(applicant => {
                 const searchable = [
                     applicant.id,
+                    getFormattedApplicantId(applicant),
                     applicant.full_name,
                     applicant.email,
                     applicant.contact_number,
@@ -496,6 +525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const name = getApplicantName(applicant);
         const status = getApplicantStatus(applicant);
+        const formattedApplicantId = getFormattedApplicantId(applicant);
 
         let resumeUrl = null;
 
@@ -540,7 +570,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="detail-grid">
                     <div class="detail-item">
                         <span>Applicant ID</span>
-                        <strong>${escapeHTML(applicant.id)}</strong>
+                        <strong>${escapeHTML(formattedApplicantId)}</strong>
                     </div>
 
                     <div class="detail-item">
@@ -705,7 +735,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateStatistics();
             renderApplicants();
 
-            // Close profile and return to dashboard after successful update.
             closeApplicantModal();
 
             showToast(
@@ -854,7 +883,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     await loadApplicants();
 
-                    // Do not reopen or rerender the profile after a status save.
                     if (activeApplicant && !isUpdatingStatus) {
                         const updatedApplicant = applicants.find(
                             item => String(item.id) === String(activeApplicant.id)
