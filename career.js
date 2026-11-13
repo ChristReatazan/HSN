@@ -1,335 +1,571 @@
-
 /* =========================================
-   HSN PHILIPPINES - CAREER APPLICATION
+   HSN PHILIPPINES - CAREER PAGE
+   SUPABASE CAREER LISTINGS
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+
     "use strict";
 
-    const BUCKET_NAME = "career-resumes";
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    /* =========================================
+       SUPABASE CONNECTION
+       Uses the existing client from script.js
+    ========================================= */
 
-    const supabaseClient =
-        window.supabaseClient ||
-        (typeof window.supabase !== "undefined" &&
-         window.supabase.createClient
-            ? window.supabase.createClient(
-                "https://qpcsskiocfeeodunpcxa.supabase.co",
-                "sb_publishable_oiJHNFvDHWa-aATe_HWJoQ_RLB2m8BZ"
-            )
-            : null);
+    const CAREERS_TABLE = "careers";
 
-    const careerListings = document.getElementById("careerListings");
-    const applicationModal = document.getElementById("applicationModal");
-    const applicationForm = document.getElementById("applicationForm");
-
-    const closeModalButton = document.getElementById("closeApplicationModal");
-    const submitButton = document.getElementById("submitApplication");
-
-    const careerIdInput = document.getElementById("applicationCareerId");
-    const positionTitle = document.getElementById("applicationPositionTitle");
-    const applicationMessage = document.getElementById("applicationMessage");
-
-    if (!supabaseClient) {
-        console.error("Supabase client unavailable.");
-
-        if (careerListings) {
-            careerListings.textContent =
-                "Unable to connect to the career database.";
-        }
-
+    if (typeof supabaseClient === "undefined" || !supabaseClient) {
+        console.error("HSN Careers: Supabase client is unavailable.");
+        showLoadError(
+            "Career opportunities are temporarily unavailable. Please try again later."
+        );
         return;
     }
 
-    let selectedCareer = null;
+    /* =========================================
+       ELEMENT REFERENCES
+    ========================================= */
 
-    function createElement(tag, className, content) {
-        const element = document.createElement(tag);
+    const careerGrid = document.getElementById("publicCareerGrid");
 
-        if (className) element.className = className;
-        if (content !== undefined) element.textContent = content;
+    const careerCount = document.getElementById("publicCareerCount");
 
-        return element;
-    }
+    const careerSearch = document.getElementById("publicCareerSearch");
 
-    async function loadCareers() {
-        if (!careerListings) return;
+    const departmentFilter = document.getElementById(
+        "publicCareerDepartment"
+    );
 
-        careerListings.innerHTML =
-            '<p class="career-loading">Loading available positions...</p>';
+    const resultsLabel = document.getElementById("careerResultsLabel");
 
-        const { data, error } = await supabaseClient
-            .from("careers")
-            .select("*")
-            .eq("is_published", true)
-            .order("created_at", { ascending: false });
+    const lastUpdated = document.getElementById("careerLastUpdated");
 
-        if (error) {
-            console.error("Career loading error:", error);
-            careerListings.innerHTML =
-                '<p class="career-error">Unable to load available positions.</p>';
-            return;
-        }
+    const noResults = document.getElementById("careerNoResults");
 
-        careerListings.innerHTML = "";
+    const clearFiltersButton = document.getElementById(
+        "clearCareerFilters"
+    );
 
-        if (!data || data.length === 0) {
-            careerListings.innerHTML =
-                '<p class="career-empty">There are currently no available positions.</p>';
-            return;
-        }
+    const detailModal = document.getElementById("careerDetailModal");
 
-        data.forEach(career => {
-            const card = createElement("article", "career-card");
+    const closeDetailsButton = document.getElementById(
+        "closeCareerDetails"
+    );
 
-            card.appendChild(
-                createElement("h3", "", career.title || "Untitled Position")
-            );
+    const closeDetailsBottom = document.getElementById(
+        "closeCareerDetailsBottom"
+    );
 
-            const meta = createElement("div", "career-meta");
+    const detailTitle = document.getElementById("detailTitle");
 
-            if (career.department) {
-                meta.appendChild(createElement("span", "", career.department));
-            }
+    const detailMeta = document.getElementById("detailMeta");
 
-            if (career.location) {
-                meta.appendChild(createElement("span", "", career.location));
-            }
+    const detailDescription = document.getElementById(
+        "detailDescription"
+    );
 
-            if (career.employment_type) {
-                meta.appendChild(createElement("span", "", career.employment_type));
-            }
+    const detailRequirements = document.getElementById(
+        "detailRequirements"
+    );
 
-            card.appendChild(meta);
+    const requirementsSection = document.getElementById(
+        "requirementsSection"
+    );
 
-            card.appendChild(
-                createElement(
-                    "p",
-                    "career-description",
-                    career.description || "No description provided."
-                )
-            );
+    /* =========================================
+       APPLICATION STATE
+    ========================================= */
 
-            if (career.requirements) {
-                card.appendChild(createElement("h4", "", "Requirements"));
+    let careers = [];
+    let activeCareer = null;
+    let realtimeChannel = null;
+    let previousFocus = null;
 
-                const requirements = Array.isArray(career.requirements)
-                    ? career.requirements.join("\n")
-                    : String(career.requirements);
+    /* =========================================
+       SAFE TEXT HANDLING
+    ========================================= */
 
-                card.appendChild(
-                    createElement("p", "career-requirements", requirements)
-                );
-            }
+    function escapeHTML(value) {
 
-            const applyButton = createElement(
-                "button",
-                "apply-now-button",
-                "Apply Now"
-            );
+        return String(value ?? "").replace(/[&<>"']/g, character => {
 
-            applyButton.type = "button";
-            applyButton.addEventListener("click", () => {
-                openApplicationModal(career);
-            });
+            const entities = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            };
 
-            card.appendChild(applyButton);
-            careerListings.appendChild(card);
+            return entities[character];
+
         });
+
     }
 
-    function openApplicationModal(career) {
-        selectedCareer = career;
+    /* =========================================
+       DATE FORMATTING
+    ========================================= */
 
-        applicationForm.reset();
+    function formatDate(value) {
 
-        careerIdInput.value = career.id;
-        positionTitle.textContent = career.title || "Selected Position";
+        if (!value) return "";
 
-        applicationMessage.textContent = "";
-        applicationMessage.className = "application-message";
+        const date = new Date(value);
 
-        applicationModal.classList.add("active");
-        applicationModal.setAttribute("aria-hidden", "false");
+        if (Number.isNaN(date.getTime())) return "";
 
-        document.body.classList.add("modal-open");
+        return new Intl.DateTimeFormat("en-PH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }).format(date);
+
     }
 
-    function closeApplicationModal() {
-        applicationModal.classList.remove("active");
-        applicationModal.setAttribute("aria-hidden", "true");
+    function formatUpdatedTime() {
 
-        document.body.classList.remove("modal-open");
+        const now = new Date();
 
-        applicationForm.reset();
-        applicationMessage.textContent = "";
+        return new Intl.DateTimeFormat("en-PH", {
+            hour: "numeric",
+            minute: "2-digit"
+        }).format(now);
 
-        selectedCareer = null;
     }
 
-    closeModalButton?.addEventListener("click", closeApplicationModal);
+    /* =========================================
+       LOADING STATE
+    ========================================= */
 
-    applicationModal?.addEventListener("click", event => {
-        if (event.target === applicationModal) {
-            closeApplicationModal();
+    function showLoading() {
+
+        careerGrid.innerHTML = `
+            <div class="career-loading-state">
+                <span class="career-loader"></span>
+                <p>Loading available opportunities...</p>
+            </div>
+        `;
+
+        noResults.hidden = true;
+
+    }
+
+    /* =========================================
+       ERROR STATE
+    ========================================= */
+
+    function showLoadError(message) {
+
+        careerGrid.innerHTML = `
+            <div class="career-loading-state">
+                <p>${escapeHTML(message)}</p>
+            </div>
+        `;
+
+        noResults.hidden = true;
+
+        if (careerCount) {
+            careerCount.textContent = "—";
         }
+
+    }
+
+    /* =========================================
+       FETCH PUBLISHED CAREERS
+    ========================================= */
+
+    async function loadCareers(showLoader = true) {
+
+        if (showLoader) {
+            showLoading();
+        }
+
+        try {
+
+            const { data, error } = await supabaseClient
+                .from(CAREERS_TABLE)
+                .select(`
+                    id,
+                    title,
+                    department,
+                    location,
+                    employment_type,
+                    description,
+                    requirements,
+                    is_published,
+                    created_at
+                `)
+                .eq("is_published", true)
+                .order("created_at", {
+                    ascending: false
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            careers = data || [];
+
+            populateDepartments();
+
+            renderCareers();
+
+            if (lastUpdated) {
+                lastUpdated.textContent =
+                    `Updated ${formatUpdatedTime()}`;
+            }
+
+        } catch (error) {
+
+            console.error("HSN Careers loading error:", error);
+
+            showLoadError(
+                "We are unable to load career opportunities right now. Please try again later."
+            );
+
+        }
+
+    }
+
+    /* =========================================
+       DEPARTMENT FILTER
+    ========================================= */
+
+    function populateDepartments() {
+
+        if (!departmentFilter) return;
+
+        const currentValue = departmentFilter.value;
+
+        const departments = [
+            ...new Set(
+                careers
+                    .map(career => career.department?.trim())
+                    .filter(Boolean)
+            )
+        ].sort((a, b) => a.localeCompare(b));
+
+        departmentFilter.innerHTML = `
+            <option value="all">All Departments</option>
+
+            ${departments.map(department => `
+                <option value="${escapeHTML(department)}">
+                    ${escapeHTML(department)}
+                </option>
+            `).join("")}
+        `;
+
+        departmentFilter.value = departments.includes(currentValue)
+            ? currentValue
+            : "all";
+
+    }
+
+    /* =========================================
+       SEARCH AND FILTER LOGIC
+    ========================================= */
+
+    function getFilteredCareers() {
+
+        const searchTerm = careerSearch.value
+            .trim()
+            .toLowerCase();
+
+        const selectedDepartment = departmentFilter.value;
+
+        return careers.filter(career => {
+
+            const searchableText = [
+
+                career.title,
+                career.department,
+                career.location,
+                career.employment_type,
+                career.description,
+                career.requirements
+
+            ].join(" ").toLowerCase();
+
+            const matchesSearch =
+                !searchTerm || searchableText.includes(searchTerm);
+
+            const matchesDepartment =
+                selectedDepartment === "all" ||
+                career.department === selectedDepartment;
+
+            return matchesSearch && matchesDepartment;
+
+        });
+
+    }
+
+    /* =========================================
+       RENDER CAREER CARDS
+    ========================================= */
+
+    function renderCareers() {
+
+        const filteredCareers = getFilteredCareers();
+
+        careerCount.textContent = careers.length;
+
+        if (resultsLabel) {
+
+            resultsLabel.textContent =
+                filteredCareers.length === careers.length
+                    ? "AVAILABLE POSITIONS"
+                    : `SHOWING ${filteredCareers.length} OF ${careers.length} POSITIONS`;
+
+        }
+
+        if (filteredCareers.length === 0) {
+
+            careerGrid.innerHTML = "";
+            noResults.hidden = false;
+
+            return;
+
+        }
+
+        noResults.hidden = true;
+
+        careerGrid.innerHTML = filteredCareers.map(career => {
+
+            const jobDate = formatDate(career.created_at);
+
+            return `
+
+                <article class="career-card">
+
+                    <div class="career-card-top">
+
+                        <span class="career-card-department">
+                            ${escapeHTML(career.department)}
+                        </span>
+
+                        <span class="career-card-type">
+                            ${escapeHTML(career.employment_type)}
+                        </span>
+
+                    </div>
+
+                    <h3>${escapeHTML(career.title)}</h3>
+
+                    <div class="career-card-meta">
+
+                        <span>
+                            <b>⌖</b>
+                            ${escapeHTML(career.location)}
+                        </span>
+
+                        <span>
+                            <b>◷</b>
+                            ${escapeHTML(career.employment_type)}
+                        </span>
+
+                    </div>
+
+                    <p class="career-card-description">${escapeHTML(career.description)}</p>
+
+                    <div class="career-card-footer">
+
+                        <span class="career-card-date">
+                            ${jobDate ? `Posted ${escapeHTML(jobDate)}` : "Career Opportunity"}
+                        </span>
+
+                        <button
+                            type="button"
+                            class="career-view-button"
+                            data-career-id="${escapeHTML(career.id)}"
+                        >
+                            View Details
+                            <span>→</span>
+                        </button>
+
+                    </div>
+
+                </article>
+
+            `;
+
+        }).join("");
+
+    }
+
+    /* =========================================
+       OPEN CAREER DETAILS
+    ========================================= */
+
+    function openCareerDetails(careerId) {
+
+        const career = careers.find(item =>
+            String(item.id) === String(careerId)
+        );
+
+        if (!career) return;
+
+        activeCareer = career;
+
+        previousFocus = document.activeElement;
+
+        detailTitle.textContent = career.title || "Position Details";
+
+        detailMeta.innerHTML = `
+            <span>Department: ${escapeHTML(career.department)}</span>
+            <span>Location: ${escapeHTML(career.location)}</span>
+            <span>Employment: ${escapeHTML(career.employment_type)}</span>
+        `;
+
+        detailDescription.textContent =
+            career.description || "No job description provided.";
+
+        if (career.requirements && career.requirements.trim()) {
+
+            detailRequirements.textContent = career.requirements;
+            detailRequirements.style.whiteSpace = "pre-line";
+            requirementsSection.hidden = false;
+
+        } else {
+
+            detailRequirements.textContent = "";
+            requirementsSection.hidden = true;
+
+        }
+
+        detailModal.classList.add("active");
+
+        detailModal.setAttribute("aria-hidden", "false");
+
+        document.body.style.overflow = "hidden";
+
+        closeDetailsButton.focus();
+
+    }
+
+    /* =========================================
+       CLOSE CAREER DETAILS
+    ========================================= */
+
+    function closeCareerDetails() {
+
+        if (!detailModal.classList.contains("active")) return;
+
+        detailModal.classList.remove("active");
+
+        detailModal.setAttribute("aria-hidden", "true");
+
+        document.body.style.overflow = "";
+
+        activeCareer = null;
+
+        if (previousFocus && typeof previousFocus.focus === "function") {
+            previousFocus.focus();
+        }
+
+    }
+
+    /* =========================================
+       EVENT LISTENERS
+    ========================================= */
+
+    careerSearch.addEventListener("input", renderCareers);
+
+    departmentFilter.addEventListener("change", renderCareers);
+
+    careerGrid.addEventListener("click", event => {
+
+        const button = event.target.closest("[data-career-id]");
+
+        if (!button) return;
+
+        openCareerDetails(button.dataset.careerId);
+
+    });
+
+    clearFiltersButton.addEventListener("click", () => {
+
+        careerSearch.value = "";
+
+        departmentFilter.value = "all";
+
+        renderCareers();
+
+    });
+
+    closeDetailsButton.addEventListener(
+        "click",
+        closeCareerDetails
+    );
+
+    closeDetailsBottom.addEventListener(
+        "click",
+        closeCareerDetails
+    );
+
+    detailModal.addEventListener("click", event => {
+
+        if (event.target === detailModal) {
+            closeCareerDetails();
+        }
+
     });
 
     document.addEventListener("keydown", event => {
+
         if (
             event.key === "Escape" &&
-            applicationModal.classList.contains("active")
+            detailModal.classList.contains("active")
         ) {
-            closeApplicationModal();
+            closeCareerDetails();
         }
+
     });
 
-    function validateResume(file) {
-        if (!file) return "Please attach your resume.";
+    /* =========================================
+       SUPABASE REALTIME UPDATES
+    ========================================= */
 
-        if (file.size > MAX_FILE_SIZE) {
-            return "Resume must not exceed 5 MB.";
-        }
+    function subscribeToCareerChanges() {
 
-        if (
-            file.type !== "application/pdf" ||
-            !file.name.toLowerCase().endsWith(".pdf")
-        ) {
-            return "Only PDF files are accepted.";
-        }
+        realtimeChannel = supabaseClient
+            .channel("hsn-public-careers")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: CAREERS_TABLE
+                },
+                () => {
 
-        return null;
-    }
+                    loadCareers(false);
 
-    async function uploadResume(file, careerId) {
-        const safeName = file.name
-            .replace(/[^a-zA-Z0-9._-]/g, "_")
-            .slice(-120);
+                }
+            )
+            .subscribe(status => {
 
-        const filePath =
-            `${careerId}/${crypto.randomUUID()}-${safeName}`;
+                console.info(
+                    "HSN Careers Realtime:",
+                    status
+                );
 
-        const { data, error } = await supabaseClient.storage
-            .from(BUCKET_NAME)
-            .upload(filePath, file, {
-                contentType: "application/pdf",
-                upsert: false
             });
 
-        if (error) throw error;
-
-        return data.path;
     }
 
-    applicationForm?.addEventListener("submit", async event => {
-        event.preventDefault();
+    /* =========================================
+       INITIALIZE CAREER PAGE
+    ========================================= */
 
-        if (!selectedCareer) {
-            applicationMessage.textContent =
-                "Please select a position before submitting.";
-            return;
-        }
+    async function initializeCareerPage() {
 
-        const fullName =
-            document.getElementById("applicantFullName").value.trim();
+        await loadCareers();
 
-        const contactNo =
-            document.getElementById("applicantContact").value.trim();
+        subscribeToCareerChanges();
 
-        const address =
-            document.getElementById("applicantAddress").value.trim();
+    }
 
-        const expectedSalary =
-            Number(document.getElementById("applicantSalary").value);
+    initializeCareerPage();
 
-        const resumeFile =
-            document.getElementById("applicantResume").files[0];
-
-        const resumeError = validateResume(resumeFile);
-
-        if (
-            !fullName ||
-            !contactNo ||
-            !address ||
-            !Number.isFinite(expectedSalary) ||
-            expectedSalary <= 0
-        ) {
-            applicationMessage.textContent =
-                "Please complete all fields correctly.";
-            applicationMessage.className = "application-message error";
-            return;
-        }
-
-        if (resumeError) {
-            applicationMessage.textContent = resumeError;
-            applicationMessage.className = "application-message error";
-            return;
-        }
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Submitting...";
-
-        applicationMessage.textContent = "Submitting your application...";
-        applicationMessage.className = "application-message";
-
-        let uploadedPath = null;
-
-        try {
-            uploadedPath = await uploadResume(
-                resumeFile,
-                selectedCareer.id
-            );
-
-            const { error } = await supabaseClient
-                .from("career_applications")
-                .insert({
-                    career_id: selectedCareer.id,
-                    position_title: selectedCareer.title,
-                    full_name: fullName,
-                    contact_no: contactNo,
-                    address: address,
-                    expected_salary: expectedSalary,
-                    resume_path: uploadedPath,
-                    status: "Pending"
-                });
-
-            if (error) throw error;
-
-            applicationMessage.textContent =
-                "Your application has been submitted successfully!";
-
-            applicationMessage.className =
-                "application-message success";
-
-            applicationForm.reset();
-
-            setTimeout(closeApplicationModal, 1800);
-
-        } catch (error) {
-            console.error("Application submission error:", error);
-
-            if (uploadedPath) {
-                const { error: cleanupError } =
-                    await supabaseClient.storage
-                        .from(BUCKET_NAME)
-                        .remove([uploadedPath]);
-
-                if (cleanupError) {
-                    console.error("Resume cleanup error:", cleanupError);
-                }
-            }
-
-            applicationMessage.textContent =
-                error.message || "Unable to submit your application.";
-
-            applicationMessage.className =
-                "application-message error";
-
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = "Submit Application";
-        }
-    });
-
-    loadCareers();
 });
