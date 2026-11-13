@@ -1,679 +1,626 @@
 
-document.addEventListener("DOMContentLoaded", async () => {
-    "use strict";
+"use strict";
 
-    /* =========================================
-       SUPABASE CONFIGURATION
-    ========================================= */
+/* =========================================
+   HSN PHILIPPINES - ADMIN DASHBOARD
+   SUPABASE CONNECTION
+========================================= */
 
-    const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
+const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_oiJHNFvDHWa-aATe_HWJoQ_RLB2m8BZ";
 
-    const SUPABASE_ANON_KEY =
-        "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
+const CAREERS_TABLE = "careers";
+const APPLICATIONS_TABLE = "career_applications";
+const PROFILES_TABLE = "profiles";
+const RESUME_BUCKET = "career-resumes";
 
-    const supabase = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
 
-    const CAREERS_TABLE = "careers";
 
-    /* =========================================
-       ELEMENTS
-    ========================================= */
+/* =========================================
+   DOM ELEMENTS
+========================================= */
 
-    const adminName = document.getElementById("adminName");
-    const adminAvatar = document.getElementById("adminAvatar");
+const adminLoginPage = document.getElementById("adminLoginPage");
+const adminDashboard = document.getElementById("adminDashboard");
 
-    const logoutButton = document.getElementById("logoutButton");
-    const footerLogout = document.getElementById("footerLogout");
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminLoginButton = document.getElementById("adminLoginButton");
+const adminLoginMessage = document.getElementById("adminLoginMessage");
 
-    const menuToggle = document.getElementById("menuToggle");
-    const mainNavigation = document.getElementById("mainNavigation");
+const adminLogoutButton = document.getElementById("adminLogoutButton");
+const adminUserEmail = document.getElementById("adminUserEmail");
 
-    const totalCareers = document.getElementById("totalCareers");
-    const publishedCareers = document.getElementById("publishedCareers");
-    const draftCareers = document.getElementById("draftCareers");
+const careerAdminTableBody = document.getElementById("careerAdminTableBody");
+const careerAdminSearch = document.getElementById("careerAdminSearch");
+const careerAdminFilter = document.getElementById("careerAdminFilter");
 
-    const careerTableBody = document.getElementById("careerTableBody");
-    const careerMessage = document.getElementById("careerMessage");
+const careerAdminModal = document.getElementById("careerAdminModal");
+const careerAdminForm = document.getElementById("careerAdminForm");
+const careerModalTitle = document.getElementById("careerModalTitle");
 
-    const careerSearch = document.getElementById("careerSearch");
-    const careerFilter = document.getElementById("careerFilter");
-    const careerResultCount = document.getElementById("careerResultCount");
+const addCareerButton = document.getElementById("addCareerButton");
+const closeCareerAdminModal = document.getElementById("closeCareerAdminModal");
+const cancelCareerForm = document.getElementById("cancelCareerForm");
+const saveCareerButton = document.getElementById("saveCareerButton");
 
-    const addCareerButton = document.getElementById("addCareerButton");
-    const refreshCareersButton = document.getElementById("refreshCareers");
+const careerRecordId = document.getElementById("careerRecordId");
+const careerTitle = document.getElementById("careerTitle");
+const careerDepartment = document.getElementById("careerDepartment");
+const careerLocation = document.getElementById("careerLocation");
+const careerEmploymentType = document.getElementById("careerEmploymentType");
+const careerDescription = document.getElementById("careerDescription");
+const careerRequirements = document.getElementById("careerRequirements");
+const careerIsPublished = document.getElementById("careerIsPublished");
+const careerAdminMessage = document.getElementById("careerAdminMessage");
 
-    const careerModal = document.getElementById("careerModal");
-    const careerModalTitle = document.getElementById("careerModalTitle");
-    const closeCareerModal = document.getElementById("closeCareerModal");
-    const cancelCareerButton = document.getElementById("cancelCareerButton");
+const applicantsTableBody = document.getElementById("applicantsTableBody");
+const applicantSearch = document.getElementById("applicantSearch");
+const applicantStatusFilter = document.getElementById("applicantStatusFilter");
+const refreshApplicantsButton = document.getElementById("refreshApplicants");
 
-    const careerForm = document.getElementById("careerForm");
-    const careerFormMessage = document.getElementById("careerFormMessage");
-    const saveCareerButton = document.getElementById("saveCareerButton");
+const toggleAdminSidebar = document.getElementById("toggleAdminSidebar");
+const adminSidebar = document.getElementById("adminSidebar");
 
-    const careerId = document.getElementById("careerId");
-    const careerTitle = document.getElementById("careerTitle");
-    const careerDepartment = document.getElementById("careerDepartment");
-    const careerLocation = document.getElementById("careerLocation");
-    const careerEmploymentType = document.getElementById("careerEmploymentType");
-    const careerDescription = document.getElementById("careerDescription");
-    const careerRequirements = document.getElementById("careerRequirements");
-    const careerPublished = document.getElementById("careerPublished");
 
-    const deleteModal = document.getElementById("deleteModal");
-    const cancelDeleteButton = document.getElementById("cancelDeleteButton");
-    const confirmDeleteButton = document.getElementById("confirmDeleteButton");
+/* =========================================
+   APPLICATION STATE
+========================================= */
 
-    const adminCurrentDate = document.getElementById("adminCurrentDate");
+let currentAdmin = null;
+let careersCache = [];
+let applicantsCache = [];
 
-    /* =========================================
-       STATE
-    ========================================= */
+const APPLICATION_STATUSES = [
+    "Pending",
+    "Under Review",
+    "Shortlisted",
+    "Rejected",
+    "Hired"
+];
 
-    let careers = [];
-    let pendingDeleteId = null;
-    let isSaving = false;
 
-    /* =========================================
-       HELPERS
-    ========================================= */
+/* =========================================
+   GENERAL HELPERS
+========================================= */
 
-    function showCareerMessage(message, type = "info") {
-        if (!careerMessage) return;
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => {
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
 
-        careerMessage.textContent = message;
-        careerMessage.className = `career-message ${type}`;
+        return entities[character];
+    });
+}
 
-        if (type !== "error") {
-            window.setTimeout(() => {
-                careerMessage.className = "career-message";
-                careerMessage.textContent = "";
-            }, 5000);
-        }
+
+function formatCurrency(value) {
+    const amount = Number(value);
+
+    if (!Number.isFinite(amount)) {
+        return "Not specified";
     }
 
-    function showFormMessage(message, type = "error") {
-        careerFormMessage.textContent = message;
-        careerFormMessage.className = `career-form-message ${type}`;
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        maximumFractionDigits: 2
+    }).format(amount);
+}
+
+
+function formatDate(value) {
+    if (!value) {
+        return "—";
     }
 
-    function clearFormMessage() {
-        careerFormMessage.textContent = "";
-        careerFormMessage.className = "career-form-message";
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "—";
     }
 
-    function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, character => {
-            const entities = {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            };
+    return date.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+    });
+}
 
-            return entities[character];
-        });
+
+function showMessage(element, message, type = "error") {
+    if (!element) return;
+
+    element.textContent = message;
+    element.className = `admin-message ${type}`;
+}
+
+
+function clearMessage(element) {
+    if (!element) return;
+
+    element.textContent = "";
+    element.className = "";
+}
+
+
+function setButtonLoading(button, loading, loadingText = "Please wait...") {
+    if (!button) return;
+
+    if (loading) {
+        button.dataset.originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = loadingText;
+    } else {
+        button.disabled = false;
+        button.textContent = button.dataset.originalText || button.textContent;
+        delete button.dataset.originalText;
     }
+}
 
-    function setButtonLoading(button, loading, originalText) {
-        if (!button) return;
 
-        button.disabled = loading;
-        button.textContent = loading ? "PLEASE WAIT..." : originalText;
-    }
+function getErrorMessage(error) {
+    return error?.message || "Something went wrong. Please try again.";
+}
 
-    function openModal(modal) {
-        modal.classList.add("active");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-    }
 
-    function closeModal(modal) {
-        modal.classList.remove("active");
-        modal.setAttribute("aria-hidden", "true");
+/* =========================================
+   AUTHENTICATION
+========================================= */
 
-        if (
-            !careerModal.classList.contains("active") &&
-            !deleteModal.classList.contains("active")
-        ) {
-            document.body.style.overflow = "";
-        }
-    }
-
-    function updateCurrentDate() {
-        if (!adminCurrentDate) return;
-
-        adminCurrentDate.textContent =
-            new Intl.DateTimeFormat("en-PH", {
-                year: "numeric",
-                month: "long",
-                day: "numeric"
-            }).format(new Date()).toUpperCase();
-    }
-
-    /* =========================================
-       AUTHENTICATION AND ADMIN VERIFICATION
-    ========================================= */
-
-    async function verifyAdmin() {
+async function checkAdminAccess() {
+    try {
         const {
             data: { session },
-            error: sessionError
-        } = await supabase.auth.getSession();
+            error
+        } = await supabaseClient.auth.getSession();
 
-        if (sessionError || !session) {
-            window.location.replace("index.html");
-            return false;
+        if (error) throw error;
+
+        if (!session?.user) {
+            showLoginPage();
+            return;
         }
 
-        const {
-            data: profile,
-            error: profileError
-        } = await supabase
-            .from("profiles")
-            .select("id, full_name, role")
-            .eq("id", session.user.id)
+        const user = session.user;
+
+        const { data: profile, error: profileError } = await supabaseClient
+            .from(PROFILES_TABLE)
+            .select("id, role")
+            .eq("id", user.id)
             .maybeSingle();
 
-        if (profileError || !profile || profile.role !== "admin") {
-            await supabase.auth.signOut();
-            window.location.replace("index.html");
-            return false;
-        }
+        if (profileError) throw profileError;
 
-        const displayName =
-            profile.full_name ||
-            session.user.user_metadata?.full_name ||
-            session.user.email ||
-            "Administrator";
+        if (!profile || profile.role !== "admin") {
+            await supabaseClient.auth.signOut();
 
-        adminName.textContent = displayName;
-        adminAvatar.textContent = displayName.charAt(0).toUpperCase();
-
-        return true;
-    }
-
-    async function logout() {
-        const { error } = await supabase.auth.signOut();
-
-        if (error) {
-            alert("Unable to sign out. Please try again.");
-            return;
-        }
-
-        window.location.replace("index.html");
-    }
-
-    /* =========================================
-       NAVIGATION
-    ========================================= */
-
-    if (menuToggle && mainNavigation) {
-        menuToggle.addEventListener("click", () => {
-            const isOpen = mainNavigation.classList.toggle("open");
-
-            menuToggle.setAttribute("aria-expanded", String(isOpen));
-        });
-
-        mainNavigation.querySelectorAll("a").forEach(link => {
-            link.addEventListener("click", () => {
-                mainNavigation.classList.remove("open");
-                menuToggle.setAttribute("aria-expanded", "false");
-            });
-        });
-    }
-
-    logoutButton?.addEventListener("click", logout);
-    footerLogout?.addEventListener("click", event => {
-        event.preventDefault();
-        logout();
-    });
-
-    /* =========================================
-       CAREER STATISTICS
-    ========================================= */
-
-    function updateStatistics() {
-        const total = careers.length;
-        const published = careers.filter(item => item.is_published).length;
-        const drafts = total - published;
-
-        totalCareers.textContent = total;
-        publishedCareers.textContent = published;
-        draftCareers.textContent = drafts;
-    }
-
-    /* =========================================
-       CAREER TABLE
-    ========================================= */
-
-    function getFilteredCareers() {
-        const searchTerm = careerSearch.value.trim().toLowerCase();
-        const filter = careerFilter.value;
-
-        return careers.filter(item => {
-            const matchesSearch = [
-                item.title,
-                item.department,
-                item.location,
-                item.employment_type
-            ].some(value =>
-                String(value || "").toLowerCase().includes(searchTerm)
+            showLoginPage(
+                "Access denied. This account does not have administrator permissions."
             );
 
-            const matchesFilter =
-                filter === "all" ||
-                (filter === "published" && item.is_published) ||
-                (filter === "draft" && !item.is_published);
-
-            return matchesSearch && matchesFilter;
-        });
-    }
-
-    function renderCareers() {
-        const filteredCareers = getFilteredCareers();
-
-        updateStatistics();
-
-        careerResultCount.textContent =
-            `${filteredCareers.length} position${filteredCareers.length === 1 ? "" : "s"}`;
-
-        if (filteredCareers.length === 0) {
-            careerTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="career-empty">
-                        No career positions found.
-                    </td>
-                </tr>
-            `;
             return;
         }
 
-        careerTableBody.innerHTML = filteredCareers.map(item => {
-            const status = item.is_published ? "published" : "draft";
-            const statusLabel = item.is_published ? "Published" : "Draft";
+        currentAdmin = user;
 
-            return `
-                <tr>
-                    <td>
-                        <span class="career-position-title">
-                            ${escapeHTML(item.title)}
-                        </span>
-                        <span class="career-position-subtitle">
-                            ${escapeHTML(item.id)}
-                        </span>
-                    </td>
+        showDashboard(user);
 
-                    <td>${escapeHTML(item.department)}</td>
-                    <td>${escapeHTML(item.location)}</td>
-                    <td>${escapeHTML(item.employment_type)}</td>
+    } catch (error) {
+        console.error("Admin access verification failed:", error);
 
-                    <td>
-                        <span class="career-status ${status}">
-                            ${statusLabel}
-                        </span>
-                    </td>
+        showLoginPage(
+            "Unable to verify administrator access. Please try again."
+        );
+    }
+}
 
-                    <td>
-                        <div class="career-row-actions">
 
-                            <button
-                                type="button"
-                                data-action="edit"
-                                data-id="${escapeHTML(item.id)}"
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                type="button"
-                                data-action="toggle"
-                                data-id="${escapeHTML(item.id)}"
-                            >
-                                ${item.is_published ? "Unpublish" : "Publish"}
-                            </button>
-
-                            <button
-                                type="button"
-                                class="delete-career-button"
-                                data-action="delete"
-                                data-id="${escapeHTML(item.id)}"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join("");
+function showLoginPage(message = "") {
+    if (adminLoginPage) {
+        adminLoginPage.hidden = false;
     }
 
-    /* =========================================
-       LOAD CAREERS
-    ========================================= */
+    if (adminDashboard) {
+        adminDashboard.hidden = true;
+    }
 
-    async function loadCareers() {
-        careerTableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="career-empty">
-                    Loading career positions...
-                </td>
-            </tr>
-        `;
+    if (message) {
+        showMessage(adminLoginMessage, message);
+    }
+}
 
-        const { data, error } = await supabase
+
+async function showDashboard(user) {
+    currentAdmin = user;
+
+    if (adminLoginPage) {
+        adminLoginPage.hidden = true;
+    }
+
+    if (adminDashboard) {
+        adminDashboard.hidden = false;
+    }
+
+    if (adminUserEmail) {
+        adminUserEmail.textContent = user.email || "Administrator";
+    }
+
+    await Promise.all([
+        loadCareers(),
+        loadApplicants()
+    ]);
+
+    updateDashboardStatistics();
+}
+
+
+if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        clearMessage(adminLoginMessage);
+
+        const email = document.getElementById("adminEmail")?.value.trim();
+        const password = document.getElementById("adminPassword")?.value;
+
+        if (!email || !password) {
+            showMessage(adminLoginMessage, "Please enter your email and password.");
+            return;
+        }
+
+        setButtonLoading(adminLoginButton, true, "Signing in...");
+
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) throw error;
+
+            if (!data.user) {
+                throw new Error("Unable to retrieve your account information.");
+            }
+
+            const { data: profile, error: profileError } = await supabaseClient
+                .from(PROFILES_TABLE)
+                .select("id, role")
+                .eq("id", data.user.id)
+                .maybeSingle();
+
+            if (profileError) throw profileError;
+
+            if (!profile || profile.role !== "admin") {
+                await supabaseClient.auth.signOut();
+
+                throw new Error(
+                    "Access denied. Your account is not registered as an administrator."
+                );
+            }
+
+            adminLoginForm.reset();
+
+            await showDashboard(data.user);
+
+        } catch (error) {
+            console.error("Login error:", error);
+            showMessage(adminLoginMessage, getErrorMessage(error));
+        } finally {
+            setButtonLoading(adminLoginButton, false);
+        }
+    });
+}
+
+
+if (adminLogoutButton) {
+    adminLogoutButton.addEventListener("click", async () => {
+        const confirmed = window.confirm("Are you sure you want to sign out?");
+
+        if (!confirmed) return;
+
+        const { error } = await supabaseClient.auth.signOut();
+
+        if (error) {
+            alert(getErrorMessage(error));
+            return;
+        }
+
+        currentAdmin = null;
+        careersCache = [];
+        applicantsCache = [];
+
+        showLoginPage();
+    });
+}
+
+
+/* =========================================
+   CAREER MANAGEMENT
+========================================= */
+
+async function loadCareers() {
+    if (!careerAdminTableBody) return;
+
+    careerAdminTableBody.innerHTML = `
+        <tr>
+            <td colspan="6" class="table-message">
+                Loading career listings...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient
             .from(CAREERS_TABLE)
             .select("*")
             .order("created_at", { ascending: false });
 
-        if (error) {
-            console.error("Career loading error:", error);
+        if (error) throw error;
 
-            careerTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="career-empty">
-                        Unable to load careers. Check your Supabase table
-                        and Row Level Security policies.
-                    </td>
-                </tr>
-            `;
+        careersCache = data || [];
 
-            showCareerMessage(
-                "Unable to load career records. Please check your database configuration.",
-                "error"
-            );
-
-            return;
-        }
-
-        careers = data || [];
         renderCareers();
+        updateDashboardStatistics();
+
+    } catch (error) {
+        console.error("Career loading error:", error);
+
+        careerAdminTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="table-message error">
+                    ${escapeHTML(getErrorMessage(error))}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+
+function renderCareers() {
+    if (!careerAdminTableBody) return;
+
+    const searchTerm = careerAdminSearch?.value.trim().toLowerCase() || "";
+    const selectedFilter = careerAdminFilter?.value || "all";
+
+    const filteredCareers = careersCache.filter(career => {
+        const searchableText = [
+            career.title,
+            career.department,
+            career.location,
+            career.employment_type
+        ].join(" ").toLowerCase();
+
+        const matchesSearch = searchableText.includes(searchTerm);
+
+        const matchesFilter =
+            selectedFilter === "all" ||
+            (selectedFilter === "published" && career.is_published === true) ||
+            (selectedFilter === "unpublished" && career.is_published !== true);
+
+        return matchesSearch && matchesFilter;
+    });
+
+    if (!filteredCareers.length) {
+        careerAdminTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="table-message">
+                    No career listings found.
+                </td>
+            </tr>
+        `;
+
+        return;
     }
 
-    /* =========================================
-       OPEN ADD CAREER MODAL
-    ========================================= */
+    careerAdminTableBody.innerHTML = filteredCareers.map(career => {
+        const published = career.is_published === true;
 
-    function resetCareerForm() {
-        careerForm.reset();
-        careerId.value = "";
-        careerPublished.checked = false;
-        clearFormMessage();
-    }
+        return `
+            <tr>
+                <td>
+                    <strong>${escapeHTML(career.title)}</strong>
+                </td>
 
-    function openAddCareerModal() {
-        resetCareerForm();
+                <td>${escapeHTML(career.department)}</td>
 
+                <td>${escapeHTML(career.location)}</td>
+
+                <td>${escapeHTML(career.employment_type)}</td>
+
+                <td>
+                    <span class="status-badge ${published ? "published" : "unpublished"}">
+                        ${published ? "Published" : "Unpublished"}
+                    </span>
+                </td>
+
+                <td>
+                    <div class="table-actions">
+                        <button
+                            type="button"
+                            class="table-action edit"
+                            data-action="edit-career"
+                            data-id="${escapeHTML(career.id)}"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            type="button"
+                            class="table-action toggle"
+                            data-action="toggle-career"
+                            data-id="${escapeHTML(career.id)}"
+                        >
+                            ${published ? "Unpublish" : "Publish"}
+                        </button>
+
+                        <button
+                            type="button"
+                            class="table-action delete"
+                            data-action="delete-career"
+                            data-id="${escapeHTML(career.id)}"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+
+function openCareerModal(career = null) {
+    if (!careerAdminModal || !careerAdminForm) return;
+
+    careerAdminForm.reset();
+    clearMessage(careerAdminMessage);
+
+    if (career) {
+        careerModalTitle.textContent = "Edit Career Position";
+
+        careerRecordId.value = career.id || "";
+        careerTitle.value = career.title || "";
+        careerDepartment.value = career.department || "";
+        careerLocation.value = career.location || "";
+        careerEmploymentType.value = career.employment_type || "";
+        careerDescription.value = career.description || "";
+
+        careerRequirements.value = Array.isArray(career.requirements)
+            ? career.requirements.join("\n")
+            : career.requirements || "";
+
+        careerIsPublished.checked = career.is_published === true;
+
+    } else {
         careerModalTitle.textContent = "Add New Position";
-        saveCareerButton.textContent = "Save Position";
-
-        openModal(careerModal);
-        careerTitle.focus();
+        careerRecordId.value = "";
+        careerIsPublished.checked = false;
     }
 
-    /* =========================================
-       OPEN EDIT CAREER MODAL
-    ========================================= */
+    careerAdminModal.classList.add("active");
+    document.body.classList.add("modal-open");
+}
 
-    function openEditCareerModal(id) {
-        const item = careers.find(career => career.id === id);
 
-        if (!item) return;
+function closeCareerModal() {
+    careerAdminModal?.classList.remove("active");
+    document.body.classList.remove("modal-open");
+}
 
-        resetCareerForm();
 
-        careerId.value = item.id;
-        careerTitle.value = item.title || "";
-        careerDepartment.value = item.department || "";
-        careerLocation.value = item.location || "";
-        careerEmploymentType.value = item.employment_type || "";
-        careerDescription.value = item.description || "";
-        careerRequirements.value = item.requirements || "";
-        careerPublished.checked = Boolean(item.is_published);
+if (addCareerButton) {
+    addCareerButton.addEventListener("click", () => {
+        openCareerModal();
+    });
+}
 
-        careerModalTitle.textContent = "Edit Position";
-        saveCareerButton.textContent = "Update Position";
 
-        openModal(careerModal);
-    }
+if (closeCareerAdminModal) {
+    closeCareerAdminModal.addEventListener("click", closeCareerModal);
+}
 
-    /* =========================================
-       SAVE CAREER
-    ========================================= */
 
-    async function saveCareer(event) {
+if (cancelCareerForm) {
+    cancelCareerForm.addEventListener("click", closeCareerModal);
+}
+
+
+if (careerAdminModal) {
+    careerAdminModal.addEventListener("click", event => {
+        if (event.target === careerAdminModal) {
+            closeCareerModal();
+        }
+    });
+}
+
+
+if (careerAdminForm) {
+    careerAdminForm.addEventListener("submit", async event => {
         event.preventDefault();
 
-        if (isSaving) return;
+        clearMessage(careerAdminMessage);
 
-        const title = careerTitle.value.trim();
-        const department = careerDepartment.value.trim();
-        const location = careerLocation.value.trim();
-        const employmentType = careerEmploymentType.value;
-        const description = careerDescription.value.trim();
-        const requirements = careerRequirements.value.trim();
-        const isPublished = careerPublished.checked;
+        const id = careerRecordId.value.trim();
 
-        if (
-            !title ||
-            !department ||
-            !location ||
-            !employmentType ||
-            !description
-        ) {
-            showFormMessage("Please complete all required fields.");
-            return;
-        }
+        const requirements = careerRequirements.value
+            .split("\n")
+            .map(item => item.trim())
+            .filter(Boolean);
 
         const careerData = {
-            title,
-            department,
-            location,
-            employment_type: employmentType,
-            description,
+            title: careerTitle.value.trim(),
+            department: careerDepartment.value.trim(),
+            location: careerLocation.value.trim(),
+            employment_type: careerEmploymentType.value,
+            description: careerDescription.value.trim(),
             requirements,
-            is_published: isPublished
+            is_published: careerIsPublished.checked
         };
 
-        isSaving = true;
-        setButtonLoading(saveCareerButton, true, "Save Position");
-
-        const existingId = careerId.value;
-
-        let result;
-
-        if (existingId) {
-            result = await supabase
-                .from(CAREERS_TABLE)
-                .update(careerData)
-                .eq("id", existingId)
-                .select()
-                .single();
-        } else {
-            result = await supabase
-                .from(CAREERS_TABLE)
-                .insert(careerData)
-                .select()
-                .single();
-        }
-
-        isSaving = false;
-        saveCareerButton.disabled = false;
-        saveCareerButton.textContent = existingId
-            ? "Update Position"
-            : "Save Position";
-
-        if (result.error) {
-            console.error("Career save error:", result.error);
-
-            showFormMessage(
-                result.error.message || "Unable to save this career position."
-            );
-
+        if (
+            !careerData.title ||
+            !careerData.department ||
+            !careerData.location ||
+            !careerData.employment_type ||
+            !careerData.description
+        ) {
+            showMessage(careerAdminMessage, "Please complete all required fields.");
             return;
         }
 
-        closeModal(careerModal);
-        resetCareerForm();
+        setButtonLoading(saveCareerButton, true, "Saving...");
 
-        showCareerMessage(
-            existingId
-                ? "Career position successfully updated."
-                : "New career position successfully created.",
-            "success"
-        );
+        try {
+            let result;
 
-        await loadCareers();
-    }
+            if (id) {
+                result = await supabaseClient
+                    .from(CAREERS_TABLE)
+                    .update(careerData)
+                    .eq("id", id);
+            } else {
+                result = await supabaseClient
+                    .from(CAREERS_TABLE)
+                    .insert([careerData]);
+            }
 
-    /* =========================================
-       PUBLISH / UNPUBLISH
-    ========================================= */
+            if (result.error) throw result.error;
 
-    async function toggleCareerStatus(id) {
-        const item = careers.find(career => career.id === id);
+            closeCareerModal();
 
-        if (!item) return;
+            await loadCareers();
 
-        const nextStatus = !item.is_published;
-
-        const confirmed = window.confirm(
-            nextStatus
-                ? `Publish "${item.title}"? It will become available for public viewing.`
-                : `Unpublish "${item.title}"? It will no longer be available publicly.`
-        );
-
-        if (!confirmed) return;
-
-        const { error } = await supabase
-            .from(CAREERS_TABLE)
-            .update({ is_published: nextStatus })
-            .eq("id", id);
-
-        if (error) {
-            console.error("Career status update error:", error);
-
-            showCareerMessage(
-                "Unable to update the publication status.",
-                "error"
+            alert(id
+                ? "Career position updated successfully."
+                : "Career position created successfully."
             );
 
-            return;
-        }
+        } catch (error) {
+            console.error("Career save error:", error);
 
-        showCareerMessage(
-            nextStatus
-                ? "Career position published successfully."
-                : "Career position unpublished successfully.",
-            "success"
-        );
-
-        await loadCareers();
-    }
-
-    /* =========================================
-       DELETE CAREER
-    ========================================= */
-
-    function openDeleteModal(id) {
-        pendingDeleteId = id;
-        openModal(deleteModal);
-    }
-
-    async function deleteCareer() {
-        if (!pendingDeleteId) return;
-
-        confirmDeleteButton.disabled = true;
-        confirmDeleteButton.textContent = "DELETING...";
-
-        const { error } = await supabase
-            .from(CAREERS_TABLE)
-            .delete()
-            .eq("id", pendingDeleteId);
-
-        confirmDeleteButton.disabled = false;
-        confirmDeleteButton.textContent = "Delete Position";
-
-        if (error) {
-            console.error("Career deletion error:", error);
-
-            closeModal(deleteModal);
-
-            showCareerMessage(
-                "Unable to delete this career position.",
-                "error"
+            showMessage(
+                careerAdminMessage,
+                getErrorMessage(error)
             );
 
-            pendingDeleteId = null;
-            return;
-        }
-
-        pendingDeleteId = null;
-        closeModal(deleteModal);
-
-        showCareerMessage(
-            "Career position deleted successfully.",
-            "success"
-        );
-
-        await loadCareers();
-    }
-
-    /* =========================================
-       EVENT LISTENERS
-    ========================================= */
-
-    addCareerButton.addEventListener("click", openAddCareerModal);
-
-    refreshCareersButton.addEventListener("click", loadCareers);
-
-    careerSearch.addEventListener("input", renderCareers);
-    careerFilter.addEventListener("change", renderCareers);
-
-    careerForm.addEventListener("submit", saveCareer);
-
-    closeCareerModal.addEventListener("click", () => {
-        closeModal(careerModal);
-    });
-
-    cancelCareerButton.addEventListener("click", () => {
-        closeModal(careerModal);
-    });
-
-    cancelDeleteButton.addEventListener("click", () => {
-        pendingDeleteId = null;
-        closeModal(deleteModal);
-    });
-
-    confirmDeleteButton.addEventListener("click", deleteCareer);
-
-    careerModal.addEventListener("click", event => {
-        if (event.target === careerModal) {
-            closeModal(careerModal);
+        } finally {
+            setButtonLoading(saveCareerButton, false);
         }
     });
+}
 
-    deleteModal.addEventListener("click", event => {
-        if (event.target === deleteModal) {
-            pendingDeleteId = null;
-            closeModal(deleteModal);
-        }
-    });
 
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            closeModal(careerModal);
-            pendingDeleteId = null;
-            closeModal(deleteModal);
-        }
-    });
-
-    careerTableBody.addEventListener("click", event => {
+if (careerAdminTableBody) {
+    careerAdminTableBody.addEventListener("click", async event => {
         const button = event.target.closest("button[data-action]");
 
         if (!button) return;
@@ -681,35 +628,492 @@ document.addEventListener("DOMContentLoaded", async () => {
         const action = button.dataset.action;
         const id = button.dataset.id;
 
-        if (action === "edit") {
-            openEditCareerModal(id);
+        const career = careersCache.find(item => String(item.id) === String(id));
+
+        if (!career) return;
+
+        if (action === "edit-career") {
+            openCareerModal(career);
+            return;
         }
 
-        if (action === "toggle") {
-            toggleCareerStatus(id);
+        if (action === "toggle-career") {
+            await toggleCareerPublication(career);
+            return;
         }
 
-        if (action === "delete") {
-            openDeleteModal(id);
+        if (action === "delete-career") {
+            await deleteCareer(career);
+        }
+    });
+}
+
+
+async function toggleCareerPublication(career) {
+    const newStatus = career.is_published !== true;
+
+    const confirmed = window.confirm(
+        newStatus
+            ? `Publish "${career.title}"?`
+            : `Unpublish "${career.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from(CAREERS_TABLE)
+            .update({ is_published: newStatus })
+            .eq("id", career.id);
+
+        if (error) throw error;
+
+        await loadCareers();
+
+    } catch (error) {
+        console.error("Career publication error:", error);
+        alert(getErrorMessage(error));
+    }
+}
+
+
+async function deleteCareer(career) {
+    const confirmed = window.confirm(
+        `Are you sure you want to delete "${career.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from(CAREERS_TABLE)
+            .delete()
+            .eq("id", career.id);
+
+        if (error) throw error;
+
+        await loadCareers();
+
+        alert("Career position deleted successfully.");
+
+    } catch (error) {
+        console.error("Career deletion error:", error);
+        alert(getErrorMessage(error));
+    }
+}
+
+
+if (careerAdminSearch) {
+    careerAdminSearch.addEventListener("input", renderCareers);
+}
+
+
+if (careerAdminFilter) {
+    careerAdminFilter.addEventListener("change", renderCareers);
+}
+
+
+/* =========================================
+   APPLICANT MANAGEMENT
+========================================= */
+
+async function loadApplicants() {
+    if (!applicantsTableBody) return;
+
+    applicantsTableBody.innerHTML = `
+        <tr>
+            <td colspan="7" class="table-message">
+                Loading applicant records...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from(APPLICATIONS_TABLE)
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        applicantsCache = data || [];
+
+        renderApplicants();
+        updateApplicantStatistics();
+        updateDashboardStatistics();
+
+    } catch (error) {
+        console.error("Applicant loading error:", error);
+
+        applicantsTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="table-message error">
+                    ${escapeHTML(getErrorMessage(error))}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+
+function renderApplicants() {
+    if (!applicantsTableBody) return;
+
+    const searchTerm = applicantSearch?.value.trim().toLowerCase() || "";
+    const selectedStatus = applicantStatusFilter?.value || "all";
+
+    const filteredApplicants = applicantsCache.filter(applicant => {
+        const searchableText = [
+            applicant.full_name,
+            applicant.contact_no,
+            applicant.address,
+            applicant.position_title
+        ].join(" ").toLowerCase();
+
+        const matchesSearch = searchableText.includes(searchTerm);
+
+        const matchesStatus =
+            selectedStatus === "all" ||
+            applicant.status === selectedStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    if (!filteredApplicants.length) {
+        applicantsTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="table-message">
+                    No applications found.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    applicantsTableBody.innerHTML = filteredApplicants.map(applicant => {
+        const status = APPLICATION_STATUSES.includes(applicant.status)
+            ? applicant.status
+            : "Pending";
+
+        return `
+            <tr>
+                <td>
+                    <div class="applicant-name-cell">
+                        <strong>${escapeHTML(applicant.full_name)}</strong>
+                        <small>${escapeHTML(applicant.address)}</small>
+                    </div>
+                </td>
+
+                <td>
+                    ${escapeHTML(applicant.position_title)}
+                </td>
+
+                <td>
+                    ${escapeHTML(applicant.contact_no)}
+                </td>
+
+                <td>
+                    ${formatCurrency(applicant.expected_salary)}
+                </td>
+
+                <td>
+                    ${formatDate(applicant.created_at)}
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-action resume"
+                        data-action="view-resume"
+                        data-id="${escapeHTML(applicant.id)}"
+                    >
+                        View Resume
+                    </button>
+                </td>
+
+                <td>
+                    <select
+                        class="applicant-status-select status-${status.toLowerCase().replace(/\s+/g, "-")}"
+                        data-action="change-status"
+                        data-id="${escapeHTML(applicant.id)}"
+                        aria-label="Application status"
+                    >
+                        ${APPLICATION_STATUSES.map(option => `
+                            <option
+                                value="${escapeHTML(option)}"
+                                ${option === status ? "selected" : ""}
+                            >
+                                ${escapeHTML(option)}
+                            </option>
+                        `).join("")}
+                    </select>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+
+if (applicantsTableBody) {
+    applicantsTableBody.addEventListener("click", async event => {
+        const button = event.target.closest('button[data-action="view-resume"]');
+
+        if (!button) return;
+
+        const applicant = applicantsCache.find(
+            item => String(item.id) === String(button.dataset.id)
+        );
+
+        if (!applicant) return;
+
+        await openApplicantResume(applicant, button);
+    });
+
+    applicantsTableBody.addEventListener("change", async event => {
+        const select = event.target.closest('select[data-action="change-status"]');
+
+        if (!select) return;
+
+        const applicant = applicantsCache.find(
+            item => String(item.id) === String(select.dataset.id)
+        );
+
+        if (!applicant) return;
+
+        await updateApplicantStatus(applicant, select.value, select);
+    });
+}
+
+
+async function openApplicantResume(applicant, button) {
+    if (!applicant.resume_path) {
+        alert("No resume file was found for this application.");
+        return;
+    }
+
+    setButtonLoading(button, true, "Opening...");
+
+    try {
+        const { data, error } = await supabaseClient
+            .storage
+            .from(RESUME_BUCKET)
+            .createSignedUrl(applicant.resume_path, 300);
+
+        if (error) throw error;
+
+        if (!data?.signedUrl) {
+            throw new Error("Unable to generate a secure resume link.");
+        }
+
+        const newWindow = window.open(
+            data.signedUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+        if (!newWindow) {
+            alert("Your browser blocked the resume window. Please allow pop-ups and try again.");
+        }
+
+    } catch (error) {
+        console.error("Resume access error:", error);
+        alert(`Unable to open resume: ${getErrorMessage(error)}`);
+
+    } finally {
+        setButtonLoading(button, false);
+    }
+}
+
+
+async function updateApplicantStatus(applicant, newStatus, selectElement) {
+    if (!APPLICATION_STATUSES.includes(newStatus)) {
+        alert("Invalid application status.");
+        renderApplicants();
+        return;
+    }
+
+    const previousStatus = applicant.status;
+
+    selectElement.disabled = true;
+
+    try {
+        const { error } = await supabaseClient
+            .from(APPLICATIONS_TABLE)
+            .update({ status: newStatus })
+            .eq("id", applicant.id);
+
+        if (error) throw error;
+
+        applicant.status = newStatus;
+
+        renderApplicants();
+        updateApplicantStatistics();
+        updateDashboardStatistics();
+
+    } catch (error) {
+        console.error("Applicant status update error:", error);
+
+        applicant.status = previousStatus;
+
+        alert(`Unable to update application status: ${getErrorMessage(error)}`);
+
+        renderApplicants();
+
+    } finally {
+        selectElement.disabled = false;
+    }
+}
+
+
+if (applicantSearch) {
+    applicantSearch.addEventListener("input", renderApplicants);
+}
+
+
+if (applicantStatusFilter) {
+    applicantStatusFilter.addEventListener("change", renderApplicants);
+}
+
+
+if (refreshApplicantsButton) {
+    refreshApplicantsButton.addEventListener("click", async () => {
+        setButtonLoading(refreshApplicantsButton, true, "Refreshing...");
+
+        await loadApplicants();
+
+        setButtonLoading(refreshApplicantsButton, false);
+    });
+}
+
+
+/* =========================================
+   DASHBOARD STATISTICS
+========================================= */
+
+function updateDashboardStatistics() {
+    const totalCareers = careersCache.length;
+
+    const publishedCount = careersCache.filter(
+        career => career.is_published === true
+    ).length;
+
+    const totalApplications = applicantsCache.length;
+
+    const pendingCount = applicantsCache.filter(
+        applicant => applicant.status === "Pending"
+    ).length;
+
+    const totalCareersElement = document.getElementById("totalCareers");
+    const publishedCareersElement = document.getElementById("publishedCareers");
+    const totalApplicantsElement = document.getElementById("totalApplicants");
+    const pendingApplicantsElement = document.getElementById("pendingApplicants");
+
+    if (totalCareersElement) {
+        totalCareersElement.textContent = totalCareers;
+    }
+
+    if (publishedCareersElement) {
+        publishedCareersElement.textContent = publishedCount;
+    }
+
+    if (totalApplicantsElement) {
+        totalApplicantsElement.textContent = totalApplications;
+    }
+
+    if (pendingApplicantsElement) {
+        pendingApplicantsElement.textContent = pendingCount;
+    }
+}
+
+
+function updateApplicantStatistics() {
+    const counts = {
+        total: applicantsCache.length,
+        pending: 0,
+        review: 0,
+        shortlisted: 0,
+        hired: 0
+    };
+
+    applicantsCache.forEach(applicant => {
+        switch (applicant.status) {
+            case "Pending":
+                counts.pending++;
+                break;
+
+            case "Under Review":
+                counts.review++;
+                break;
+
+            case "Shortlisted":
+                counts.shortlisted++;
+                break;
+
+            case "Hired":
+                counts.hired++;
+                break;
         }
     });
 
-    /* =========================================
-       INITIALIZE ADMIN PAGE
-    ========================================= */
+    const elements = {
+        applicantTotalCount: counts.total,
+        applicantPendingCount: counts.pending,
+        applicantReviewCount: counts.review,
+        applicantShortlistedCount: counts.shortlisted,
+        applicantHiredCount: counts.hired
+    };
 
-    updateCurrentDate();
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
 
-    const authorized = await verifyAdmin();
-
-    if (!authorized) return;
-
-    await loadCareers();
-
-    supabase.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_OUT" || !session) {
-            window.location.replace("index.html");
+        if (element) {
+            element.textContent = value;
         }
     });
+}
 
+
+/* =========================================
+   SIDEBAR NAVIGATION
+========================================= */
+
+if (toggleAdminSidebar && adminSidebar) {
+    toggleAdminSidebar.addEventListener("click", () => {
+        adminSidebar.classList.toggle("active");
+    });
+}
+
+
+document.querySelectorAll(".sidebar-link").forEach(link => {
+    link.addEventListener("click", () => {
+        document.querySelectorAll(".sidebar-link").forEach(item => {
+            item.classList.remove("active");
+        });
+
+        link.classList.add("active");
+
+        adminSidebar?.classList.remove("active");
+    });
+});
+
+
+/* =========================================
+   AUTH STATE LISTENER
+========================================= */
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+        currentAdmin = null;
+        showLoginPage();
+    }
+});
+
+
+/* =========================================
+   INITIALIZATION
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkAdminAccess();
 });
