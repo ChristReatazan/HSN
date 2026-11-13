@@ -9,7 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const BUCKET_NAME = "career-resumes";
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-    const supabase = window.supabaseClient;
+    const supabaseClient =
+        window.supabaseClient ||
+        (typeof window.supabase !== "undefined" &&
+         window.supabase.createClient
+            ? window.supabase.createClient(
+                "https://qpcsskiocfeeodunpcxa.supabase.co",
+                "sb_publishable_oiJHNFvDHWa-aATe_HWJoQ_RLB2m8BZ"
+            )
+            : null);
 
     const careerListings = document.getElementById("careerListings");
     const applicationModal = document.getElementById("applicationModal");
@@ -18,24 +26,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeModalButton = document.getElementById("closeApplicationModal");
     const submitButton = document.getElementById("submitApplication");
 
-    const applicationCareerId = document.getElementById("applicationCareerId");
-    const applicationPositionTitle = document.getElementById("applicationPositionTitle");
+    const careerIdInput = document.getElementById("applicationCareerId");
+    const positionTitle = document.getElementById("applicationPositionTitle");
     const applicationMessage = document.getElementById("applicationMessage");
 
-    if (!supabase) {
-        console.error("Supabase client was not found. Check script.js.");
+    if (!supabaseClient) {
+        console.error("Supabase client unavailable.");
+
         if (careerListings) {
-            careerListings.innerHTML =
-                "<p>Unable to connect to the career database. Please try again later.</p>";
+            careerListings.textContent =
+                "Unable to connect to the career database.";
         }
+
         return;
     }
 
     let selectedCareer = null;
 
-    /* =========================================
-       LOAD PUBLISHED CAREERS
-    ========================================= */
+    function createElement(tag, className, content) {
+        const element = document.createElement(tag);
+
+        if (className) element.className = className;
+        if (content !== undefined) element.textContent = content;
+
+        return element;
+    }
 
     async function loadCareers() {
         if (!careerListings) return;
@@ -43,93 +58,102 @@ document.addEventListener("DOMContentLoaded", () => {
         careerListings.innerHTML =
             '<p class="career-loading">Loading available positions...</p>';
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from("careers")
-            .select("id,title,department,location,employment_type,description,requirements,created_at")
+            .select("*")
             .eq("is_published", true)
             .order("created_at", { ascending: false });
 
         if (error) {
             console.error("Career loading error:", error);
             careerListings.innerHTML =
-                "<p>Unable to load career opportunities. Please try again later.</p>";
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            careerListings.innerHTML =
-                "<p>There are currently no available positions.</p>";
+                '<p class="career-error">Unable to load available positions.</p>';
             return;
         }
 
         careerListings.innerHTML = "";
 
+        if (!data || data.length === 0) {
+            careerListings.innerHTML =
+                '<p class="career-empty">There are currently no available positions.</p>';
+            return;
+        }
+
         data.forEach(career => {
-            const card = document.createElement("article");
-            card.className = "career-card";
+            const card = createElement("article", "career-card");
 
-            const title = document.createElement("h3");
-            title.textContent = career.title || "Untitled Position";
+            card.appendChild(
+                createElement("h3", "", career.title || "Untitled Position")
+            );
 
-            const department = document.createElement("p");
-            department.textContent = career.department || "Department not specified";
+            const meta = createElement("div", "career-meta");
 
-            const location = document.createElement("p");
-            location.textContent = career.location || "Location not specified";
+            if (career.department) {
+                meta.appendChild(createElement("span", "", career.department));
+            }
 
-            const employment = document.createElement("p");
-            employment.textContent = career.employment_type || "Employment type not specified";
+            if (career.location) {
+                meta.appendChild(createElement("span", "", career.location));
+            }
 
-            const description = document.createElement("p");
-            description.textContent = career.description || "No description provided.";
+            if (career.employment_type) {
+                meta.appendChild(createElement("span", "", career.employment_type));
+            }
 
-            const applyButton = document.createElement("button");
+            card.appendChild(meta);
+
+            card.appendChild(
+                createElement(
+                    "p",
+                    "career-description",
+                    career.description || "No description provided."
+                )
+            );
+
+            if (career.requirements) {
+                card.appendChild(createElement("h4", "", "Requirements"));
+
+                const requirements = Array.isArray(career.requirements)
+                    ? career.requirements.join("\n")
+                    : String(career.requirements);
+
+                card.appendChild(
+                    createElement("p", "career-requirements", requirements)
+                );
+            }
+
+            const applyButton = createElement(
+                "button",
+                "apply-now-button",
+                "Apply Now"
+            );
+
             applyButton.type = "button";
-            applyButton.className = "apply-now-button";
-            applyButton.textContent = "Apply Now";
-
             applyButton.addEventListener("click", () => {
                 openApplicationModal(career);
             });
 
-            card.append(
-                title,
-                department,
-                location,
-                employment,
-                description,
-                applyButton
-            );
-
+            card.appendChild(applyButton);
             careerListings.appendChild(card);
         });
     }
 
-    /* =========================================
-       OPEN APPLICATION MODAL
-    ========================================= */
-
     function openApplicationModal(career) {
         selectedCareer = career;
 
-        applicationCareerId.value = career.id;
-        applicationPositionTitle.textContent = career.title;
+        applicationForm.reset();
+
+        careerIdInput.value = career.id;
+        positionTitle.textContent = career.title || "Selected Position";
 
         applicationMessage.textContent = "";
         applicationMessage.className = "application-message";
-
-        applicationForm.reset();
-        applicationCareerId.value = career.id;
 
         applicationModal.classList.add("active");
         applicationModal.setAttribute("aria-hidden", "false");
 
         document.body.classList.add("modal-open");
     }
-
-    /* =========================================
-       CLOSE APPLICATION MODAL
-    ========================================= */
 
     function closeApplicationModal() {
         applicationModal.classList.remove("active");
@@ -152,36 +176,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" &&
-            applicationModal.classList.contains("active")) {
+        if (
+            event.key === "Escape" &&
+            applicationModal.classList.contains("active")
+        ) {
             closeApplicationModal();
         }
     });
 
-    /* =========================================
-       VALIDATE RESUME
-    ========================================= */
-
     function validateResume(file) {
-        if (!file) {
-            return "Please attach your resume.";
-        }
+        if (!file) return "Please attach your resume.";
 
         if (file.size > MAX_FILE_SIZE) {
             return "Resume must not exceed 5 MB.";
         }
 
-        if (file.type !== "application/pdf" ||
-            !file.name.toLowerCase().endsWith(".pdf")) {
+        if (
+            file.type !== "application/pdf" ||
+            !file.name.toLowerCase().endsWith(".pdf")
+        ) {
             return "Only PDF files are accepted.";
         }
 
         return null;
     }
-
-    /* =========================================
-       UPLOAD RESUME
-    ========================================= */
 
     async function uploadResume(file, careerId) {
         const safeName = file.name
@@ -191,30 +209,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const filePath =
             `${careerId}/${crypto.randomUUID()}-${safeName}`;
 
-        const { data, error } = await supabase.storage
+        const { data, error } = await supabaseClient.storage
             .from(BUCKET_NAME)
             .upload(filePath, file, {
                 contentType: "application/pdf",
                 upsert: false
             });
 
-        if (error) {
-            throw new Error("Resume upload failed: " + error.message);
-        }
+        if (error) throw error;
 
         return data.path;
     }
-
-    /* =========================================
-       SUBMIT APPLICATION
-    ========================================= */
 
     applicationForm?.addEventListener("submit", async event => {
         event.preventDefault();
 
         if (!selectedCareer) {
             applicationMessage.textContent =
-                "Please select a career position first.";
+                "Please select a position before submitting.";
             return;
         }
 
@@ -235,22 +247,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const resumeError = validateResume(resumeFile);
 
-        if (!fullName || !contactNo || !address ||
-            !Number.isFinite(expectedSalary) || expectedSalary <= 0) {
+        if (
+            !fullName ||
+            !contactNo ||
+            !address ||
+            !Number.isFinite(expectedSalary) ||
+            expectedSalary <= 0
+        ) {
             applicationMessage.textContent =
-                "Please complete all fields with valid information.";
+                "Please complete all fields correctly.";
+            applicationMessage.className = "application-message error";
             return;
         }
 
         if (resumeError) {
             applicationMessage.textContent = resumeError;
+            applicationMessage.className = "application-message error";
             return;
         }
 
         submitButton.disabled = true;
         submitButton.textContent = "Submitting...";
 
-        applicationMessage.textContent = "Uploading your application...";
+        applicationMessage.textContent = "Submitting your application...";
         applicationMessage.className = "application-message";
 
         let uploadedPath = null;
@@ -261,9 +280,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 selectedCareer.id
             );
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from("career_applications")
-                .insert([{
+                .insert({
                     career_id: selectedCareer.id,
                     position_title: selectedCareer.title,
                     full_name: fullName,
@@ -272,11 +291,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     expected_salary: expectedSalary,
                     resume_path: uploadedPath,
                     status: "Pending"
-                }]);
+                });
 
-            if (error) {
-                throw new Error(error.message);
-            }
+            if (error) throw error;
 
             applicationMessage.textContent =
                 "Your application has been submitted successfully!";
@@ -285,22 +302,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 "application-message success";
 
             applicationForm.reset();
-            applicationCareerId.value = selectedCareer.id;
 
-            setTimeout(() => {
-                closeApplicationModal();
-            }, 1800);
+            setTimeout(closeApplicationModal, 1800);
 
         } catch (error) {
             console.error("Application submission error:", error);
 
             if (uploadedPath) {
-                const { error: cleanupError } = await supabase.storage
-                    .from(BUCKET_NAME)
-                    .remove([uploadedPath]);
+                const { error: cleanupError } =
+                    await supabaseClient.storage
+                        .from(BUCKET_NAME)
+                        .remove([uploadedPath]);
 
                 if (cleanupError) {
-                    console.error("Resume cleanup failed:", cleanupError);
+                    console.error("Resume cleanup error:", cleanupError);
                 }
             }
 
