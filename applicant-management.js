@@ -2,15 +2,10 @@
 /* =========================================
    HSN PHILIPPINES
    APPLICANT MANAGEMENT
-   SUPABASE INTEGRATION
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
-
-    /* =========================================
-       SUPABASE CONFIGURATION
-    ========================================= */
 
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
@@ -24,10 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         SUPABASE_URL,
         SUPABASE_KEY
     );
-
-    /* =========================================
-       DOM ELEMENTS
-    ========================================= */
 
     const applicantTableBody = document.getElementById("applicantTableBody");
     const searchInput = document.getElementById("searchApplicants");
@@ -51,31 +42,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const logoutButton = document.getElementById("logoutButton");
 
-    /* =========================================
-       APPLICATION STATE
-    ========================================= */
-
     let applicants = [];
     let activeApplicant = null;
     let realtimeChannel = null;
     let isLoading = false;
 
     /* =========================================
-       HELPER FUNCTIONS
+       HELPERS
     ========================================= */
 
     function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, character => {
-            const entities = {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            };
-
-            return entities[character];
-        });
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[character]);
     }
 
     function formatDate(value) {
@@ -83,9 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const date = new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
-            return "Not available";
-        }
+        if (Number.isNaN(date.getTime())) return "Not available";
 
         return date.toLocaleDateString("en-AU", {
             day: "2-digit",
@@ -99,9 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const date = new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
-            return "Not available";
-        }
+        if (Number.isNaN(date.getTime())) return "Not available";
 
         return date.toLocaleString("en-AU", {
             day: "2-digit",
@@ -159,28 +138,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function showToast(message, type = "success") {
         const container = document.getElementById("toastContainer");
-
         if (!container) return;
 
         const toast = document.createElement("div");
-
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
 
         container.appendChild(toast);
 
-        requestAnimationFrame(() => {
-            toast.classList.add("show");
-        });
+        requestAnimationFrame(() => toast.classList.add("show"));
 
         setTimeout(() => {
             toast.classList.remove("show");
-
             setTimeout(() => toast.remove(), 300);
         }, 3500);
     }
 
-    function showTableMessage(message, isError = false) {
+    function showTableMessage(message) {
         applicantTableBody.innerHTML = `
             <tr>
                 <td colspan="6" class="table-message">
@@ -188,14 +162,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </td>
             </tr>
         `;
-
-        if (isError) {
-            console.error(message);
-        }
     }
 
     /* =========================================
-       AUTHENTICATION & ADMIN VALIDATION
+       ADMIN AUTHENTICATION
     ========================================= */
 
     async function verifyAdmin() {
@@ -206,20 +176,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             error: sessionError
         } = await supabase.auth.getSession();
 
-        if (sessionError) {
+        if (sessionError || !session) {
             console.error("SESSION ERROR:", sessionError);
             window.location.replace("login.html");
             return false;
         }
-
-        if (!session) {
-            console.warn("NO ACTIVE SESSION");
-            window.location.replace("login.html");
-            return false;
-        }
-
-        console.log("SESSION:", session);
-        console.log("AUTH USER ID:", session.user.id);
 
         const { data: profile, error: profileError } = await supabase
             .from(PROFILES_TABLE)
@@ -233,14 +194,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             return false;
         }
 
-        console.log("ADMIN PROFILE:", profile);
-
         if (!profile || profile.role !== "admin") {
-            console.warn("USER IS NOT AN ADMIN");
-
             await supabase.auth.signOut();
             window.location.replace("login.html");
-
             return false;
         }
 
@@ -253,33 +209,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const nameElement = document.getElementById("sidebarAdminName");
         const avatarElement = document.getElementById("sidebarAvatar");
 
-        if (nameElement) {
-            nameElement.textContent = adminName;
-        }
-
-        if (avatarElement) {
-            avatarElement.textContent = getApplicantInitials(adminName);
-        }
+        if (nameElement) nameElement.textContent = adminName;
+        if (avatarElement) avatarElement.textContent = getApplicantInitials(adminName);
 
         return true;
     }
 
     /* =========================================
-       LOAD CAREER INFORMATION
+       CAREER INFORMATION
     ========================================= */
 
-    async function loadCareerInformation(applicationRecords) {
+    async function loadCareerInformation(records) {
         const careerIds = [
-            ...new Set(
-                applicationRecords
-                    .map(applicant => applicant.career_id)
-                    .filter(Boolean)
-            )
+            ...new Set(records.map(item => item.career_id).filter(Boolean))
         ];
 
-        if (!careerIds.length) {
-            return applicationRecords;
-        }
+        if (!careerIds.length) return records;
 
         const { data: careers, error } = await supabase
             .from(CAREERS_TABLE)
@@ -288,17 +233,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (error) {
             console.error("CAREER INFORMATION ERROR:", error);
-            return applicationRecords;
+            return records;
         }
 
         const careerMap = new Map(
-            (careers || []).map(career => [
-                String(career.id),
-                career
-            ])
+            (careers || []).map(career => [String(career.id), career])
         );
 
-        return applicationRecords.map(applicant => ({
+        return records.map(applicant => ({
             ...applicant,
             careers: careerMap.get(String(applicant.career_id)) || null
         }));
@@ -324,32 +266,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .select("*")
                 .order("created_at", { ascending: false });
 
-            if (error) {
-                console.error("LOAD APPLICANTS ERROR:", error);
+            if (error) throw error;
 
-                showTableMessage(
-                    "Unable to load applications. Please check your database permissions.",
-                    true
-                );
-
-                showToast("Unable to load applications.", "error");
-                return;
-            }
-
-            const records = data || [];
-
-            applicants = await loadCareerInformation(records);
-
-            console.log("APPLICANTS LOADED:", applicants);
+            applicants = await loadCareerInformation(data || []);
 
             updateStatistics();
             renderApplicants();
 
-        } catch (error) {
-            console.error("Unexpected applicant loading error:", error);
+            console.log("APPLICANTS LOADED:", applicants);
 
-            showTableMessage("An unexpected error occurred.", true);
-            showToast("Unable to load applicant records.", "error");
+        } catch (error) {
+            console.error("LOAD APPLICANTS ERROR:", error);
+
+            showTableMessage(
+                "Unable to load applications. Please check your database permissions."
+            );
+
+            showToast(error.message || "Unable to load applications.", "error");
 
         } finally {
             isLoading = false;
@@ -366,37 +299,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================================= */
 
     function updateStatistics() {
-        const total = applicants.length;
+        totalApplicantsElement.textContent = applicants.length;
 
-        const pending = applicants.filter(
-            applicant => getApplicantStatus(applicant) === "Pending"
+        pendingApplicantsElement.textContent = applicants.filter(
+            item => getApplicantStatus(item) === "Pending"
         ).length;
 
-        const shortlisted = applicants.filter(
-            applicant => getApplicantStatus(applicant) === "Shortlisted"
+        shortlistedApplicantsElement.textContent = applicants.filter(
+            item => getApplicantStatus(item) === "Shortlisted"
         ).length;
 
-        const unread = applicants.filter(
-            applicant => applicant.is_read === false
+        unreadApplicantsElement.textContent = applicants.filter(
+            item => item.is_read === false
         ).length;
-
-        totalApplicantsElement.textContent = total;
-        pendingApplicantsElement.textContent = pending;
-        shortlistedApplicantsElement.textContent = shortlisted;
-        unreadApplicantsElement.textContent = unread;
     }
 
     /* =========================================
-       FILTER & SORT APPLICANTS
+       FILTER & SORT
     ========================================= */
 
     function getFilteredApplicants() {
         let filtered = [...applicants];
 
-        const searchTerm = searchInput.value
-            .trim()
-            .toLowerCase();
-
+        const searchTerm = searchInput.value.trim().toLowerCase();
         const selectedStatus = statusFilter.value;
         const selectedSort = sortFilter.value;
 
@@ -416,7 +341,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (selectedStatus !== "all") {
             filtered = filtered.filter(
-                applicant => getApplicantStatus(applicant) === selectedStatus
+                item => getApplicantStatus(item) === selectedStatus
             );
         }
 
@@ -424,15 +349,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             filtered.sort((a, b) =>
                 new Date(b.created_at || 0) - new Date(a.created_at || 0)
             );
-        }
-
-        if (selectedSort === "oldest") {
+        } else if (selectedSort === "oldest") {
             filtered.sort((a, b) =>
                 new Date(a.created_at || 0) - new Date(b.created_at || 0)
             );
-        }
-
-        if (selectedSort === "name") {
+        } else if (selectedSort === "name") {
             filtered.sort((a, b) =>
                 getApplicantName(a).localeCompare(getApplicantName(b))
             );
@@ -460,26 +381,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ? "No applicants match your search or filters."
                     : "No applications have been submitted yet."
             );
-
             return;
         }
 
         applicantTableBody.innerHTML = filtered.map(applicant => {
             const name = getApplicantName(applicant);
-            const initials = getApplicantInitials(name);
             const status = getApplicantStatus(applicant);
+            const statusClass = status.toLowerCase().replace(/[^a-z0-9-]/g, "");
             const isRead = applicant.is_read !== false;
-
-            const statusClass = status
-                .toLowerCase()
-                .replace(/[^a-z0-9-]/g, "");
 
             return `
                 <tr>
                     <td>
                         <div class="applicant-cell">
                             <div class="applicant-avatar">
-                                ${escapeHTML(initials)}
+                                ${escapeHTML(getApplicantInitials(name))}
                             </div>
 
                             <div class="applicant-info">
@@ -506,13 +422,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </td>
 
                     <td>
-                        <button
-                            type="button"
-                            class="view-applicant-button"
-                            data-applicant-id="${escapeHTML(applicant.id)}"
-                        >
-                            View Details
-                        </button>
+                        <div class="applicant-action-group">
+                            <button
+                                type="button"
+                                class="view-applicant-button"
+                                data-action="view"
+                                data-applicant-id="${escapeHTML(applicant.id)}"
+                            >
+                                View
+                            </button>
+
+                            <button
+                                type="button"
+                                class="delete-applicant-button"
+                                data-action="delete"
+                                data-applicant-id="${escapeHTML(applicant.id)}"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -520,7 +448,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /* =========================================
-       OPEN APPLICANT DETAILS
+       OPEN APPLICANT PROFILE
     ========================================= */
 
     async function openApplicantModal(applicantId) {
@@ -534,7 +462,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         activeApplicant = applicant;
-
         applicantModal.classList.add("show");
 
         applicantDetails.innerHTML = `
@@ -560,7 +487,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /* =========================================
-       RENDER APPLICANT DETAILS
+       RENDER APPLICANT PROFILE
     ========================================= */
 
     async function renderApplicantDetails(applicant) {
@@ -599,6 +526,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div>
                     <h3>${escapeHTML(name)}</h3>
                     <p>${escapeHTML(getPosition(applicant))}</p>
+
                     <span class="status-badge status-${escapeHTML(status.toLowerCase())}">
                         ${escapeHTML(status)}
                     </span>
@@ -695,9 +623,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                         id="updateApplicantStatus"
                         class="update-status-button"
                     >
-                        Update Status
+                        Save Status
                     </button>
                 </div>
+            </div>
+
+            <div class="applicant-profile-delete">
+                <button
+                    type="button"
+                    id="deleteApplicantFromProfile"
+                    class="delete-applicant-button"
+                >
+                    Delete Application
+                </button>
             </div>
         `;
 
@@ -705,59 +643,65 @@ document.addEventListener("DOMContentLoaded", async () => {
             "click",
             updateApplicantStatus
         );
+
+        document.getElementById("deleteApplicantFromProfile")?.addEventListener(
+            "click",
+            () => deleteApplicant(applicant.id)
+        );
     }
 
     /* =========================================
-       UPDATE APPLICANT STATUS
+       UPDATE APPLICATION STATUS
     ========================================= */
 
     async function updateApplicantStatus() {
         if (!activeApplicant) return;
 
-        const statusSelect = document.getElementById(
-            "applicantStatusSelect"
-        );
-
-        const updateButton = document.getElementById(
-            "updateApplicantStatus"
-        );
+        const statusSelect = document.getElementById("applicantStatusSelect");
+        const updateButton = document.getElementById("updateApplicantStatus");
 
         if (!statusSelect || !updateButton) return;
 
         const newStatus = statusSelect.value;
+        const previousStatus = getApplicantStatus(activeApplicant);
+
+        if (newStatus === previousStatus) {
+            showToast("No status changes were made.", "info");
+            return;
+        }
 
         updateButton.disabled = true;
-        updateButton.textContent = "Updating...";
+        updateButton.textContent = "Saving...";
 
         try {
             const { data, error } = await supabase
                 .from(APPLICATIONS_TABLE)
-                .update({
-                    status: newStatus
-                })
+                .update({ status: newStatus })
                 .eq("id", activeApplicant.id)
-                .select()
-                .single();
+                .select("id, status")
+                .maybeSingle();
 
             if (error) throw error;
+
+            if (!data) {
+                throw new Error(
+                    "Status was not updated. Check the admin UPDATE permission for career_applications."
+                );
+            }
 
             const index = applicants.findIndex(
                 item => String(item.id) === String(activeApplicant.id)
             );
 
             if (index !== -1) {
-                applicants[index] = {
-                    ...applicants[index],
-                    ...data
-                };
-
+                applicants[index].status = data.status;
                 activeApplicant = applicants[index];
             }
 
             updateStatistics();
             renderApplicants();
 
-            showToast("Applicant status updated successfully.");
+            showToast("Application status updated successfully.");
 
             await renderApplicantDetails(activeApplicant);
 
@@ -765,12 +709,98 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("UPDATE STATUS ERROR:", error);
 
             showToast(
-                error.message || "Unable to update applicant status.",
+                error.message || "Unable to update application status.",
                 "error"
             );
 
             updateButton.disabled = false;
-            updateButton.textContent = "Update Status";
+            updateButton.textContent = "Save Status";
+        }
+    }
+
+    /* =========================================
+       DELETE APPLICANT
+    ========================================= */
+
+    async function deleteApplicant(applicantId) {
+        const applicant = applicants.find(
+            item => String(item.id) === String(applicantId)
+        );
+
+        if (!applicant) {
+            showToast("Applicant record not found.", "error");
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to permanently delete the application of ${getApplicantName(applicant)}?\n\nThis action cannot be undone.`
+        );
+
+        if (!confirmed) return;
+
+        const deleteButtons = document.querySelectorAll(
+            `[data-applicant-id="${CSS.escape(String(applicantId))}"][data-action="delete"], #deleteApplicantFromProfile`
+        );
+
+        deleteButtons.forEach(button => {
+            button.disabled = true;
+            button.textContent = "Deleting...";
+        });
+
+        try {
+            const { data, error } = await supabase
+                .from(APPLICATIONS_TABLE)
+                .delete()
+                .eq("id", applicantId)
+                .select("id")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                throw new Error(
+                    "Application was not deleted. Check the admin DELETE permission for career_applications."
+                );
+            }
+
+            applicants = applicants.filter(
+                item => String(item.id) !== String(applicantId)
+            );
+
+            if (activeApplicant &&
+                String(activeApplicant.id) === String(applicantId)) {
+                closeApplicantModal();
+            }
+
+            updateStatistics();
+            renderApplicants();
+
+            if (applicant.resume_path) {
+                const { error: storageError } = await supabase.storage
+                    .from(RESUME_BUCKET)
+                    .remove([applicant.resume_path]);
+
+                if (storageError) {
+                    console.error("RESUME CLEANUP ERROR:", storageError);
+                }
+            }
+
+            showToast("Application deleted successfully.");
+
+        } catch (error) {
+            console.error("DELETE APPLICANT ERROR:", error);
+
+            showToast(
+                error.message || "Unable to delete application.",
+                "error"
+            );
+
+            deleteButtons.forEach(button => {
+                button.disabled = false;
+                button.textContent = button.id === "deleteApplicantFromProfile"
+                    ? "Delete Application"
+                    : "Delete";
+            });
         }
     }
 
@@ -829,10 +859,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .subscribe(status => {
                 console.log("Applicant realtime status:", status);
 
-                if (
-                    status === "CHANNEL_ERROR" ||
-                    status === "TIMED_OUT"
-                ) {
+                if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
                     console.error("Realtime connection failed.");
                 }
             });
@@ -844,10 +871,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     applicantTableBody.addEventListener("click", event => {
         const button = event.target.closest("[data-applicant-id]");
-
         if (!button) return;
 
-        openApplicantModal(button.dataset.applicantId);
+        const applicantId = button.dataset.applicantId;
+        const action = button.dataset.action;
+
+        if (action === "view") {
+            openApplicantModal(applicantId);
+        }
+
+        if (action === "delete") {
+            deleteApplicant(applicantId);
+        }
     });
 
     searchInput.addEventListener("input", renderApplicants);
@@ -863,7 +898,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         searchInput.value = "";
         statusFilter.value = "all";
         sortFilter.value = "newest";
-
         renderApplicants();
     });
 
@@ -905,14 +939,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (error) {
             console.error("LOGOUT ERROR:", error);
-
             showToast("Unable to sign out. Please try again.", "error");
             logoutButton.disabled = false;
         }
     });
 
     /* =========================================
-       INITIALIZE APPLICANT MANAGEMENT
+       INITIALIZE
     ========================================= */
 
     const isAdmin = await verifyAdmin();
@@ -920,9 +953,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!isAdmin) return;
 
     await loadApplicants();
-
     setupRealtime();
 
     console.log("APPLICANT MANAGEMENT INITIALIZED");
-
 });
