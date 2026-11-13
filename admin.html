@@ -4,241 +4,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSN Admin Dashboard</title>
+    <meta name="theme-color" content="#09251c">
+    <title>Admin Dashboard | HSN Philippines</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="admin-page">
 
-    <section id="adminLoginPage" class="login-page">
-        <div class="login-card">
-            <div class="login-brand">HSN <span>PHILIPPINES</span></div>
-            <h1>Admin Portal</h1>
-            <p>Sign in to manage career opportunities and applicants.</p>
+<header class="header admin-header">
+    <div class="logo">
+        <a href="index.html">
+            <img src="./images/hsn.jpg" alt="HSN Philippines Logo" class="logo-image">
+        </a>
+    </div>
 
-            <form id="adminLoginForm">
-                <label for="adminEmail">Email Address</label>
-                <input type="email" id="adminEmail" required>
+    <nav class="navigation" id="adminNavigation">
+        <a href="index.html">View Website</a>
+        <a href="#dashboard" class="active">Dashboard</a>
+        <a href="#management">Management</a>
+    </nav>
 
-                <label for="adminPassword">Password</label>
-                <input type="password" id="adminPassword" required>
+    <div class="admin-header-actions">
+        <span class="admin-status">
+            <span class="status-indicator"></span>
+            ADMIN PORTAL
+        </span>
 
-                <p id="adminLoginMessage" role="status"></p>
+        <button class="admin-profile-button" type="button" aria-label="Admin profile">
+            <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="3.5"></circle>
+                <path d="M5 20c0-3.8 3.1-6.5 7-6.5s7 2.7 7 6.5"></path>
+            </svg>
+        </button>
 
-                <button type="submit" id="adminLoginButton">
-                    Sign In
-                </button>
-            </form>
+        <button class="menu-toggle" id="adminMenuToggle" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<main>
+    <section class="admin-hero" id="dashboard">
+        <div class="admin-hero-pattern"></div>
+        <div class="admin-hero-content">
+            <div class="admin-breadcrumb">
+                <span>HSN PHILIPPINES</span>
+                <span class="breadcrumb-divider">/</span>
+                <span>ADMINISTRATION</span>
+            </div>
+
+            <div class="admin-welcome">
+                <div>
+                    <span class="admin-eyebrow">
+                        <span class="admin-eyebrow-line"></span>
+                        ADMINISTRATION CENTER
+                    </span>
+                    <h1>Welcome to the<br><span>Admin Portal.</span></h1>
+                    <p>
+                        Manage and oversee your HSN Philippines website
+                        through one centralized administration platform.
+                    </p>
+                </div>
+                <div class="admin-hero-mark">HSN<span>.</span></div>
+            </div>
+
+            <div class="admin-hero-bottom">
+                <span class="admin-live-dot"></span>
+                ADMINISTRATIVE ENVIRONMENT
+                <span class="admin-hero-line"></span>
+                <span id="adminCurrentDate">LOADING DATE</span>
+            </div>
         </div>
     </section>
 
-    <div id="adminDashboard" class="admin-layout" hidden>
-
-        <aside id="adminSidebar" class="admin-sidebar">
-            <div class="sidebar-brand">
-                HSN <span>ADMIN</span>
+    <section class="admin-content" id="management">
+        <div class="admin-section-heading">
+            <div>
+                <span class="admin-section-label">OVERVIEW</span>
+                <h2>Dashboard <span>Overview.</span></h2>
+                <p>Access your website management tools and administrative sections.</p>
             </div>
-
-            <nav class="sidebar-navigation">
-                <a href="#dashboardOverview">Dashboard</a>
-                <a href="#careerManagement">Career Management</a>
-                <a href="#applicantManagement">Applicant Management</a>
-            </nav>
-
-            <button type="button" id="adminLogoutButton"
-                class="logout-button">Sign Out</button>
-        </aside>
-
-        <main class="admin-main">
-            <header class="admin-topbar">
-                <div>
-                    <button type="button" id="toggleAdminSidebar"
-                        class="sidebar-toggle">☰</button>
-                    <span class="admin-topbar-title">Administration</span>
-                </div>
-                <span id="adminUserEmail"></span>
-            </header>
-
-            <div class="admin-content">
-
-                <section id="dashboardOverview">
-                    <div class="page-heading">
-                        <span>OVERVIEW</span>
-                        <h1>Dashboard</h1>
-                        <p>Manage your career listings and applications.</p>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <span>Total Positions</span>
-                            <strong id="totalCareers">0</strong>
-                        </div>
-                        <div class="stat-card">
-                            <span>Published Positions</span>
-                            <strong id="publishedCareers">0</strong>
-                        </div>
-                        <div class="stat-card">
-                            <span>Total Applicants</span>
-                            <strong id="totalApplicants">0</strong>
-                        </div>
-                        <div class="stat-card">
-                            <span>Pending Applications</span>
-                            <strong id="pendingApplicants">0</strong>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="careerManagement" class="admin-section">
-                    <div class="section-header">
-                        <div>
-                            <span>POSITION ADMINISTRATION</span>
-                            <h2>Career Management</h2>
-                        </div>
-                        <button type="button" id="addCareerButton"
-                            class="primary-button">+ Add Position</button>
-                    </div>
-
-                    <div class="table-toolbar">
-                        <input type="search" id="careerAdminSearch"
-                            placeholder="Search positions...">
-
-                        <select id="careerAdminFilter">
-                            <option value="all">All Positions</option>
-                            <option value="published">Published</option>
-                            <option value="draft">Unpublished</option>
-                        </select>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Position</th>
-                                    <th>Department</th>
-                                    <th>Location</th>
-                                    <th>Employment</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="careerAdminTableBody">
-                                <tr><td colspan="6">Loading positions...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="applicantManagement" class="admin-section">
-                    <div class="section-header">
-                        <div>
-                            <span>RECRUITMENT</span>
-                            <h2>Applicant Management</h2>
-                        </div>
-
-                        <button type="button" id="refreshApplicants"
-                            class="secondary-button">Refresh</button>
-                    </div>
-
-                    <div class="applicant-stats">
-                        <div><span>Total</span><strong id="applicantTotalCount">0</strong></div>
-                        <div><span>Pending</span><strong id="applicantPendingCount">0</strong></div>
-                        <div><span>Under Review</span><strong id="applicantReviewCount">0</strong></div>
-                        <div><span>Shortlisted</span><strong id="applicantShortlistedCount">0</strong></div>
-                        <div><span>Hired</span><strong id="applicantHiredCount">0</strong></div>
-                    </div>
-
-                    <div class="table-toolbar">
-                        <input type="search" id="applicantSearch"
-                            placeholder="Search applicant, contact, or position...">
-
-                        <select id="applicantPositionFilter">
-                            <option value="all">All Positions</option>
-                        </select>
-
-                        <select id="applicantStatusFilter">
-                            <option value="all">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Under Review">Under Review</option>
-                            <option value="Shortlisted">Shortlisted</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Hired">Hired</option>
-                        </select>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Applicant</th>
-                                    <th>Contact</th>
-                                    <th>Position</th>
-                                    <th>Address</th>
-                                    <th>Expected Salary</th>
-                                    <th>Date Submitted</th>
-                                    <th>Status</th>
-                                    <th>Resume</th>
-                                </tr>
-                            </thead>
-                            <tbody id="applicantsTableBody">
-                                <tr><td colspan="8">Loading applicants...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+            <div class="dashboard-indicator">
+                <span></span>
+                SYSTEM OVERVIEW
             </div>
-        </main>
-    </div>
+        </div>
 
-    <div id="careerAdminModal" class="admin-modal" aria-hidden="true">
-        <div class="admin-modal-content">
-            <button type="button" id="closeCareerAdminModal"
-                class="modal-close">&times;</button>
-
-            <h2 id="careerModalTitle">Add Position</h2>
-
-            <form id="careerAdminForm">
-                <input type="hidden" id="careerRecordId">
-
-                <label for="careerTitle">Position Title</label>
-                <input type="text" id="careerTitle" required>
-
-                <label for="careerDepartment">Department</label>
-                <input type="text" id="careerDepartment">
-
-                <label for="careerLocation">Location</label>
-                <input type="text" id="careerLocation">
-
-                <label for="careerEmploymentType">Employment Type</label>
-                <select id="careerEmploymentType">
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Internship">Internship</option>
-                </select>
-
-                <label for="careerDescription">Description</label>
-                <textarea id="careerDescription" rows="5"></textarea>
-
-                <label for="careerRequirements">Requirements</label>
-                <textarea id="careerRequirements" rows="5"></textarea>
-
-                <label class="checkbox-label">
-                    <input type="checkbox" id="careerIsPublished">
-                    Publish this position
-                </label>
-
-                <p id="careerAdminMessage" role="status"></p>
-
-                <div class="modal-actions">
-                    <button type="button" id="cancelCareerForm"
-                        class="secondary-button">Cancel</button>
-                    <button type="submit" id="saveCareerButton"
-                        class="primary-button">Save Position</button>
+        <div class="admin-stats-grid">
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">WEBSITE STATUS</span>
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M3 12h4l3-8 4 16 3-8h4"></path>
+                        </svg>
+                    </span>
                 </div>
-            </form>
+                <h3>Active</h3>
+                <p>Website availability</p>
+                <div class="stat-card-footer">
+                    <span class="stat-dot"></span>
+                    CURRENTLY ONLINE
+                </div>
+            </article>
+
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">BRAND PARTNERS</span>
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M20 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                </div>
+                <h3>13</h3>
+                <p>Listed brand partners</p>
+                <div class="stat-card-footer">
+                    <span class="stat-dot"></span>
+                    PARTNER DIRECTORY
+                </div>
+            </article>
+
+            <article class="admin-stat-card">
+                <div class="stat-card-top">
+                    <span class="stat-label">CONTENT MANAGEMENT</span>
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M4 4h16v16H4z"></path>
+                            <path d="M8 9h8M8 13h8M8 17h5"></path>
+                        </svg>
+                    </span>
+                </div>
+                <h3>Manage</h3>
+                <p>Website content and pages</p>
+                <div class="stat-card-footer">
+                    <span class="stat-dot"></span>
+                    ADMIN TOOLS
+                </div>
+            </article>
+        </div>
+
+        <div class="admin-module-heading">
+            <div>
+                <span class="admin-section-label">ADMINISTRATION</span>
+                <h2>Management <span>Modules.</span></h2>
+            </div>
+        </div>
+
+        <div class="admin-modules-grid">
+            <a href="clients.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                </div>
+                <span class="module-number">01 / DIRECTORY</span>
+                <h3>Brand Partners</h3>
+                <p>View and manage the HSN brand partner directory.</p>
+                <span class="module-link">OPEN MODULE <span>↗</span></span>
+            </a>
+
+            <a href="services.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"></path>
+                    </svg>
+                </div>
+                <span class="module-number">02 / OPERATIONS</span>
+                <h3>Services</h3>
+                <p>Access the HSN services and support information.</p>
+                <span class="module-link">OPEN MODULE <span>↗</span></span>
+            </a>
+
+            <a href="dps.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3 4.5 6v5.5c0 4.5 3.2 7.5 7.5 9.5 4.3-2 7.5-5 7.5-9.5V6L12 3Z"></path>
+                        <path d="m9 12 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <span class="module-number">03 / COMPLIANCE</span>
+                <h3>Data Privacy</h3>
+                <p>Review the company's data privacy statement.</p>
+                <span class="module-link">OPEN MODULE <span>↗</span></span>
+            </a>
+
+            <a href="index.html#announcements" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                        <path d="M10 21h4"></path>
+                    </svg>
+                </div>
+                <span class="module-number">04 / COMMUNICATIONS</span>
+                <h3>Announcements</h3>
+                <p>Access the website announcements section.</p>
+                <span class="module-link">OPEN MODULE <span>↗</span></span>
+            </a>
+
+            <a href="index.html#careers" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="7" width="18" height="14" rx="2"></rect>
+                        <path d="M8 7V4h8v3M3 12h18M10 12v2h4v-2"></path>
+                    </svg>
+                </div>
+                <span class="module-number">05 / PEOPLE</span>
+                <h3>Careers</h3>
+                <p>Access career and recruitment information.</p>
+                <span class="module-link">OPEN MODULE <span>↗</span></span>
+            </a>
+
+            <a href="index.html" class="admin-module-card">
+                <div class="module-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 11 12 3l9 8"></path>
+                        <path d="M5 10v10h14V10M9 20v-6h6v6"></path>
+                    </svg>
+                </div>
+                <span class="module-number">06 / WEBSITE</span>
+                <h3>Homepage</h3>
+                <p>Return to the public-facing HSN website.</p>
+                <span class="module-link">VISIT WEBSITE <span>↗</span></span>
+            </a>
+        </div>
+
+        <div class="admin-notice">
+            <div class="notice-icon">i</div>
+            <div>
+                <h3>Administration Workspace</h3>
+                <p>
+                    This dashboard is currently a front-end interface.
+                    Content editing, user permissions, and database
+                    operations will be connected in the next development phase.
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="hsn-footer">
+    <div class="hsn-footer-container">
+        <div class="hsn-footer-brand">
+            <a href="index.html" class="hsn-footer-logo">
+                <img src="images/hsn.jpg" alt="HSN Philippines Logo">
+            </a>
+        </div>
+        <div class="hsn-footer-column">
+            <h3>Company</h3>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Services</a>
+        </div>
+        <div class="hsn-footer-column">
+            <h3>Quick Links</h3>
+            <a href="clients.html">Clients</a>
+            <a href="index.html#announcements">Announcements</a>
+            <a href="dps.html">Data Privacy Statement</a>
+        </div>
+        <div class="hsn-footer-column">
+            <h3>Support</h3>
+            <a href="index.html#location">Location</a>
+            <a href="index.html#careers">Careers</a>
+            <a href="index.html">Contact Us</a>
         </div>
     </div>
+    <div class="hsn-footer-bottom">
+        <div class="hsn-footer-bottom-inner">
+            <p>Copyright © 2021 HSN - All rights reserved.</p>
+            <a href="dps.html">Data Privacy Statement</a>
+        </div>
+    </div>
+</footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="admin.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
