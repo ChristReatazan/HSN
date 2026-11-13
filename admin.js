@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_oiJNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
+    const SUPABASE_ANON_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
     const CAREERS_TABLE = "careers";
 
     const supabase = window.supabase.createClient(
@@ -136,10 +136,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }).format(new Date()).toUpperCase();
     }
 
-    /* =========================================
-       AUTHENTICATION
-    ========================================= */
-
     async function verifyAdmin() {
         try {
             const {
@@ -253,10 +249,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         logout();
     });
 
-    /* =========================================
-       MOBILE NAVIGATION
-    ========================================= */
-
     if (menuToggle && mainNavigation) {
         menuToggle.addEventListener("click", () => {
             const isOpen = mainNavigation.classList.toggle("open");
@@ -270,10 +262,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         });
     }
-
-    /* =========================================
-       ADMIN PROFILE MENU
-    ========================================= */
 
     const adminMenuStyles = document.createElement("style");
 
@@ -484,10 +472,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         childList: true,
         subtree: true
     });
-
-    /* =========================================
-       ADMIN ACTION MODALS
-    ========================================= */
 
     const actionOverlay = document.createElement("div");
     actionOverlay.className = "admin-action-overlay";
@@ -769,10 +753,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    /* =========================================
-       CAREER STATISTICS
-    ========================================= */
-
     function updateStatistics() {
         const total = careers.length;
         const published = careers.filter(item => item.is_published).length;
@@ -781,10 +761,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (publishedCareers) publishedCareers.textContent = published;
         if (draftCareers) draftCareers.textContent = total - published;
     }
-
-    /* =========================================
-       CAREER FILTERING
-    ========================================= */
 
     function getFilteredCareers() {
         const searchTerm = careerSearch.value.trim().toLowerCase();
@@ -808,10 +784,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             return matchesSearch && matchesFilter;
         });
     }
-
-    /* =========================================
-       RENDER CAREERS
-    ========================================= */
 
     function renderCareers() {
         const filteredCareers = getFilteredCareers();
@@ -892,10 +864,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }).join("");
     }
 
-    /* =========================================
-       LOAD CAREERS
-    ========================================= */
-
     async function loadCareers() {
         careerTableBody.innerHTML = `
             <tr>
@@ -934,10 +902,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderCareers();
     }
 
-    /* =========================================
-       CAREER MODAL
-    ========================================= */
-
     function resetCareerForm() {
         careerForm.reset();
         careerId.value = "";
@@ -975,10 +939,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         openModal(careerModal);
     }
-
-    /* =========================================
-       SAVE CAREER
-    ========================================= */
 
     async function saveCareer(event) {
         event.preventDefault();
@@ -1054,10 +1014,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    /* =========================================
-       PUBLISH / UNPUBLISH
-    ========================================= */
-
     async function toggleCareerStatus(id) {
         const item = careers.find(career => String(career.id) === String(id));
         if (!item) return;
@@ -1093,10 +1049,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadCareers();
     }
 
-    /* =========================================
-       DELETE CAREER
-    ========================================= */
-
     function openDeleteModal(id) {
         pendingDeleteId = id;
         openModal(deleteModal);
@@ -1131,10 +1083,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         showCareerMessage("Career position deleted successfully.", "success");
         await loadCareers();
     }
-
-    /* =========================================
-       CAREER EVENT LISTENERS
-    ========================================= */
 
     addCareerButton.addEventListener("click", openAddCareerModal);
     refreshCareersButton.addEventListener("click", loadCareers);
@@ -1183,10 +1131,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             pendingDeleteId = null;
         }
     });
-
-    /* =========================================
-       INITIALIZE
-    ========================================= */
 
     updateCurrentDate();
 
