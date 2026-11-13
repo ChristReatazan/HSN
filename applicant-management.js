@@ -166,10 +166,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function verifyAdmin() {
         try {
+            console.log("APPLICANT MANAGEMENT AUTH CHECK STARTED");
+
             const {
                 data: { session },
                 error: sessionError
             } = await supabase.auth.getSession();
+
+            console.log("SESSION:", session);
+            console.log("SESSION ERROR:", sessionError);
 
             if (sessionError) {
                 console.error("Session error:", sessionError);
@@ -178,9 +183,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (!session) {
+                console.error("CAUSE: NO ACTIVE SESSION");
                 window.location.replace("login.html");
                 return false;
             }
+
+            console.log("AUTH USER ID:", session.user.id);
 
             const {
                 data: profile,
@@ -190,6 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 .select("id, full_name, role")
                 .eq("id", session.user.id)
                 .maybeSingle();
+
+            console.log("ADMIN PROFILE:", profile);
+            console.log("PROFILE ERROR:", profileError);
 
             if (profileError) {
                 console.error("Admin profile verification error:", profileError);
