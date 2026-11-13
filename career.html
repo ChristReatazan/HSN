@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="career.css">
+    <link rel="stylesheet" href="site-common.css">
 </head>
 
 <body class="career-page">
@@ -32,6 +33,7 @@
             <a href="clients.html">Clients</a>
             <a href="index.html#announcements">Announcements</a>
             <a href="dps.html">Data Privacy Statement</a>
+            <a href="contact.html">Contact Us</a>
 
             <button type="button" class="mobile-login-trigger" id="mobileLoginTrigger">
                 <span class="user-icon-small">♙</span>
@@ -570,7 +572,7 @@
             <div class="hsn-footer-column">
                 <h3>Support</h3>
                 <a href="#">Service Centre's</a>
-                <a href="#">Contact Us</a>
+                <a href="contact.html">Contact Us</a>
             </div>
 
         </div>
@@ -584,93 +586,10 @@
 
     </footer>
 
-    <div class="application-modal" id="applicationModal">
-    <div class="application-modal-content">
-
-        <button type="button" class="application-close" id="closeApplicationModal">
-            &times;
-        </button>
-
-        <div class="application-header">
-            <span class="application-label">CAREER APPLICATION</span>
-            <h2>Apply for this Position</h2>
-            <p id="applicationPosition">Position Name</p>
-        </div>
-
-        <form id="careerApplicationForm">
-
-            <input type="hidden" id="applicationCareerId">
-
-            <div class="application-field">
-                <label for="applicantFullName">Full Name</label>
-                <input
-                    type="text"
-                    id="applicantFullName"
-                    required
-                    maxlength="150"
-                    placeholder="Enter your full name"
-                >
-            </div>
-
-            <div class="application-field">
-                <label for="applicantContact">Contact No.</label>
-                <input
-                    type="tel"
-                    id="applicantContact"
-                    required
-                    maxlength="30"
-                    placeholder="Enter your contact number"
-                >
-            </div>
-
-            <div class="application-field">
-                <label for="applicantAddress">Address</label>
-                <textarea
-                    id="applicantAddress"
-                    required
-                    maxlength="500"
-                    placeholder="Enter your complete address"
-                ></textarea>
-            </div>
-
-            <div class="application-field">
-                <label for="applicantSalary">Expected Salary (PHP)</label>
-                <input
-                    type="number"
-                    id="applicantSalary"
-                    required
-                    min="1"
-                    step="0.01"
-                    placeholder="e.g. 25000"
-                >
-            </div>
-
-            <div class="application-field">
-                <label for="applicantResume">Resume (PDF only)</label>
-                <input
-                    type="file"
-                    id="applicantResume"
-                    accept=".pdf,application/pdf"
-                    required
-                >
-                <small>Maximum file size: 5 MB</small>
-            </div>
-
-            <button type="submit" id="submitApplication">
-                Submit Application
-            </button>
-
-            <p id="applicationMessage" role="status"></p>
-
-        </form>
-    </div>
-</div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
     <script src="career.js"></script>
 
-    
-
+<script src="site-auth.js"></script>
 </body>
 </html>
