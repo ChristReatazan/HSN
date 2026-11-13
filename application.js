@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_oiJNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
+    const SUPABASE_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
     const supabase = window.supabase.createClient(
         SUPABASE_URL,
@@ -551,6 +551,41 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     /* =========================================
+       EDGE FUNCTION ERROR READER
+    ========================================= */
+
+    async function getFunctionErrorMessage(error) {
+        let message = error?.message || "Unable to create administrator account.";
+
+        if (error?.context) {
+            try {
+                const response = await error.context.clone().json();
+
+                console.error(
+                    "Create Admin Edge Function response:",
+                    response
+                );
+
+                if (response?.details) {
+                    message = response.details;
+                } else if (response?.error) {
+                    message = response.error;
+                } else if (response?.message) {
+                    message = response.message;
+                }
+
+            } catch (responseError) {
+                console.error(
+                    "Unable to read Edge Function response:",
+                    responseError
+                );
+            }
+        }
+
+        return message;
+    }
+
+    /* =========================================
        ADD ADMIN
     ========================================= */
 
@@ -567,7 +602,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const email = document.getElementById(
                 "newAdminEmail"
-            ).value.trim();
+            ).value.trim().toLowerCase();
 
             const password = document.getElementById(
                 "newAdminPassword"
@@ -586,6 +621,33 @@ document.addEventListener("DOMContentLoaded", () => {
             setLoading(form, true, "Create Admin");
 
             try {
+                /* GET CURRENT AUTHENTICATED SESSION */
+
+                const {
+                    data: { session },
+                    error: sessionError
+                } = await supabase.auth.getSession();
+
+                if (sessionError) {
+                    throw new Error(
+                        "Unable to retrieve your administrator session. Please sign in again."
+                    );
+                }
+
+                if (!session?.access_token) {
+                    throw new Error(
+                        "Your administrator session is missing or expired. Please sign in again."
+                    );
+                }
+
+                console.log("Add Admin session check:", {
+                    sessionExists: !!session,
+                    accessTokenExists: !!session.access_token,
+                    userId: session.user?.id
+                });
+
+                /* CALL EDGE FUNCTION WITH USER ACCESS TOKEN */
+
                 const { data, error } = await supabase.functions.invoke(
                     "create-admin",
                     {
@@ -593,18 +655,33 @@ document.addEventListener("DOMContentLoaded", () => {
                             full_name: fullName,
                             email,
                             password
+                        },
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`
                         }
                     }
                 );
 
-                if (error) throw error;
+                if (error) {
+                    const errorMessage =
+                        await getFunctionErrorMessage(error);
+
+                    throw new Error(errorMessage);
+                }
 
                 if (data?.error) {
                     throw new Error(data.error);
                 }
 
+                if (data?.success === false) {
+                    throw new Error(
+                        data.message || "Unable to create administrator account."
+                    );
+                }
+
                 showMessage(
                     addAdminModal,
+                    data?.message ||
                     "Administrator account created successfully.",
                     "success"
                 );
@@ -616,7 +693,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 showMessage(
                     addAdminModal,
-                    error.message || "Unable to create administrator account.",
+                    error.message ||
+                    "Unable to create administrator account.",
                     "error"
                 );
 
@@ -757,7 +835,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadApplicantNotificationCount();
             }
         )
-        .subscribe();
+        .subscribe(status => {
+            if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+                console.error(
+                    "Applicant notification realtime connection:",
+                    status
+                );
+            }
+        });
 
     /* =========================================
        INITIALIZE NOTIFICATIONS
