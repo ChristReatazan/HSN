@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let careers = [];
     let pendingDeleteId = null;
     let isSaving = false;
+    let isLoggingOut = false;
 
     function escapeHTML(value) {
         return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -87,18 +88,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function showFormMessage(message, type = "error") {
         if (!careerFormMessage) return;
+
         careerFormMessage.textContent = message;
         careerFormMessage.className = `career-form-message ${type}`;
     }
 
     function clearFormMessage() {
         if (!careerFormMessage) return;
+
         careerFormMessage.textContent = "";
         careerFormMessage.className = "career-form-message";
     }
 
     function openModal(modal) {
         if (!modal) return;
+
         modal.classList.add("active");
         modal.setAttribute("aria-hidden", "false");
         document.body.style.overflow = "hidden";
@@ -137,51 +141,107 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================================= */
 
     async function verifyAdmin() {
-        const {
-            data: { session },
-            error: sessionError
-        } = await supabase.auth.getSession();
+        try {
+            let session = null;
 
-        if (sessionError || !session) {
+            // Allow Supabase to restore the existing session.
+            for (let attempt = 0; attempt < 10; attempt++) {
+                const {
+                    data,
+                    error
+                } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error("Session verification error:", error);
+                }
+
+                session = data?.session || null;
+
+                if (session) break;
+
+                await new Promise(resolve =>
+                    setTimeout(resolve, 300)
+                );
+            }
+
+            if (!session) {
+                console.error("No active session found.");
+                window.location.replace("index.html");
+                return false;
+            }
+
+            const {
+                data: profile,
+                error: profileError
+            } = await supabase
+                .from("profiles")
+                .select("id, full_name, role")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+            if (profileError) {
+                console.error(
+                    "Admin profile verification error:",
+                    profileError
+                );
+
+                alert(
+                    "Unable to verify your administrator account. Please try again."
+                );
+
+                window.location.replace("index.html");
+                return false;
+            }
+
+            if (!profile || profile.role !== "admin") {
+                console.error("Account is not authorized as an administrator.");
+
+                await supabase.auth.signOut();
+
+                window.location.replace("index.html");
+                return false;
+            }
+
+            const displayName =
+                profile.full_name ||
+                session.user.user_metadata?.full_name ||
+                session.user.email ||
+                "Administrator";
+
+            if (adminName) {
+                adminName.textContent = displayName;
+            }
+
+            const initial = $("adminAvatarInitial");
+
+            if (initial) {
+                initial.textContent =
+                    displayName.charAt(0).toUpperCase();
+            } else if (adminAvatar) {
+                const badge = $("applicantNotificationBadge");
+
+                adminAvatar.textContent =
+                    displayName.charAt(0).toUpperCase();
+
+                if (badge) {
+                    adminAvatar.appendChild(badge);
+                }
+            }
+
+            console.log("Admin authentication successful.");
+
+            return true;
+
+        } catch (error) {
+            console.error(
+                "Unexpected admin authentication error:",
+                error
+            );
+
             window.location.replace("index.html");
             return false;
         }
-
-        const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, full_name, role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-        if (profileError || !profile || profile.role !== "admin") {
-            await supabase.auth.signOut();
-            window.location.replace("index.html");
-            return false;
-        }
-
-        const displayName =
-            profile.full_name ||
-            session.user.user_metadata?.full_name ||
-            session.user.email ||
-            "Administrator";
-
-        if (adminName) adminName.textContent = displayName;
-
-        const initial = $("adminAvatarInitial");
-
-        if (initial) {
-            initial.textContent = displayName.charAt(0).toUpperCase();
-        } else if (adminAvatar) {
-            const badge = $("applicantNotificationBadge");
-            adminAvatar.textContent = displayName.charAt(0).toUpperCase();
-
-            if (badge) adminAvatar.appendChild(badge);
-        }
-
-        return true;
     }
-
-    let isLoggingOut = false;
 
     async function logout() {
         if (isLoggingOut) return;
@@ -213,7 +273,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (menuToggle && mainNavigation) {
         menuToggle.addEventListener("click", () => {
             const isOpen = mainNavigation.classList.toggle("open");
-            menuToggle.setAttribute("aria-expanded", String(isOpen));
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
         });
 
         mainNavigation.querySelectorAll("a").forEach(link => {
@@ -226,7 +290,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* =========================================
        ADMIN PROFILE MENU
-       Compatible with application.js dropdown
     ========================================= */
 
     const adminMenuStyles = document.createElement("style");
@@ -239,8 +302,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             gap: 5px;
         }
 
-        .admin-action-menu button,
-        .admin-action-menu a {
+        .admin-action-menu button {
             width: 100%;
             display: flex;
             align-items: center;
@@ -253,13 +315,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             font-size: 12px;
             font-weight: 700;
             text-align: left;
-            text-decoration: none;
             cursor: pointer;
             transition: .2s ease;
         }
 
-        .admin-action-menu button:hover,
-        .admin-action-menu a:hover {
+        .admin-action-menu button:hover {
             background: #f0f7fc;
             color: #087dc1;
         }
@@ -391,7 +451,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.head.appendChild(adminMenuStyles);
 
     function addAdminMenu(dropdown) {
-        if (!dropdown || dropdown.querySelector(".admin-action-menu")) return;
+        if (!dropdown) return;
+
+        if (dropdown.querySelector(".admin-action-menu")) return;
 
         const menu = document.createElement("div");
         menu.className = "admin-action-menu";
@@ -411,21 +473,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         dropdown.appendChild(menu);
     }
 
-    function findAdminDropdown() {
-        return document.querySelector(
+    function observeAdminDropdown() {
+        const dropdown = document.querySelector(
             ".admin-profile-dropdown, .applicant-dropdown"
         );
-    }
-
-    function observeAdminDropdown() {
-        const dropdown = findAdminDropdown();
 
         if (dropdown) {
             addAdminMenu(dropdown);
         }
     }
 
-    const dropdownObserver = new MutationObserver(observeAdminDropdown);
+    const dropdownObserver = new MutationObserver(() => {
+        observeAdminDropdown();
+    });
 
     dropdownObserver.observe(document.body, {
         childList: true,
@@ -439,6 +499,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================================= */
 
     const actionOverlay = document.createElement("div");
+
     actionOverlay.className = "admin-action-overlay";
     actionOverlay.id = "adminActionModal";
 
@@ -488,31 +549,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function openAdminAction(type) {
         activeAdminAction = type;
+
         actionMessage.textContent = "";
         actionMessage.className = "admin-action-message";
 
         if (type === "add") {
             $("adminActionTitle").textContent = "Add New Admin";
+
             $("adminActionDescription").textContent =
                 "Create a new administrator account for HSN Philippines.";
 
             actionFields.innerHTML = `
                 <div class="admin-action-field">
                     <label for="newAdminName">Full Name</label>
-                    <input id="newAdminName" type="text"
-                        maxlength="120" autocomplete="name" required>
+                    <input
+                        id="newAdminName"
+                        type="text"
+                        maxlength="120"
+                        autocomplete="name"
+                        required
+                    >
                 </div>
 
                 <div class="admin-action-field">
                     <label for="newAdminEmail">Email Address</label>
-                    <input id="newAdminEmail" type="email"
-                        maxlength="254" autocomplete="email" required>
+                    <input
+                        id="newAdminEmail"
+                        type="email"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                    >
                 </div>
 
                 <div class="admin-action-field">
                     <label for="newAdminPassword">Temporary Password</label>
-                    <input id="newAdminPassword" type="password"
-                        minlength="8" autocomplete="new-password" required>
+                    <input
+                        id="newAdminPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
                 </div>
             `;
 
@@ -521,20 +599,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (type === "password") {
             $("adminActionTitle").textContent = "Change Password";
+
             $("adminActionDescription").textContent =
                 "Update the password of your currently signed-in administrator account.";
 
             actionFields.innerHTML = `
                 <div class="admin-action-field">
                     <label for="newPassword">New Password</label>
-                    <input id="newPassword" type="password"
-                        minlength="8" autocomplete="new-password" required>
+                    <input
+                        id="newPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
                 </div>
 
                 <div class="admin-action-field">
                     <label for="confirmNewPassword">Confirm New Password</label>
-                    <input id="confirmNewPassword" type="password"
-                        minlength="8" autocomplete="new-password" required>
+                    <input
+                        id="confirmNewPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
                 </div>
             `;
 
@@ -564,6 +653,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.addEventListener("click", event => {
         const button = event.target.closest("[data-admin-action]");
+
         if (!button) return;
 
         event.preventDefault();
@@ -620,17 +710,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
                 if (error) {
-                    let message = error.message || "Unable to create admin.";
+                    let message =
+                        error.message || "Unable to create admin.";
 
                     try {
                         const response = await error.context?.json();
-                        if (response?.error) message = response.error;
+
+                        if (response?.error) {
+                            message = response.error;
+                        }
                     } catch (_) {}
 
                     throw new Error(message);
                 }
 
-                if (data?.error) throw new Error(data.error);
+                if (data?.error) {
+                    throw new Error(data.error);
+                }
 
                 showAdminActionMessage(
                     "Administrator account created successfully.",
@@ -639,7 +735,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 actionForm.reset();
 
-                window.setTimeout(() => closeModal(actionOverlay), 1400);
+                window.setTimeout(() => {
+                    closeModal(actionOverlay);
+                }, 1400);
             }
 
             if (activeAdminAction === "password") {
@@ -654,7 +752,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 if (password !== confirmPassword) {
-                    showAdminActionMessage("The passwords do not match.");
+                    showAdminActionMessage(
+                        "The passwords do not match."
+                    );
                     return;
                 }
 
@@ -671,13 +771,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 actionForm.reset();
 
-                window.setTimeout(() => closeModal(actionOverlay), 1400);
+                window.setTimeout(() => {
+                    closeModal(actionOverlay);
+                }, 1400);
             }
+
         } catch (error) {
             console.error("Admin action error:", error);
+
             showAdminActionMessage(
                 error.message || "Something went wrong. Please try again."
             );
+
         } finally {
             setAdminActionLoading(false);
         }
@@ -689,7 +794,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function updateStatistics() {
         const total = careers.length;
-        const published = careers.filter(item => item.is_published).length;
+        const published = careers.filter(
+            item => item.is_published
+        ).length;
 
         if (totalCareers) totalCareers.textContent = total;
         if (publishedCareers) publishedCareers.textContent = published;
@@ -701,7 +808,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================================= */
 
     function getFilteredCareers() {
-        const searchTerm = careerSearch?.value.trim().toLowerCase() || "";
+        const searchTerm =
+            careerSearch?.value.trim().toLowerCase() || "";
+
         const filter = careerFilter?.value || "all";
 
         return careers.filter(item => {
@@ -711,7 +820,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 item.location,
                 item.employment_type
             ].some(value =>
-                String(value || "").toLowerCase().includes(searchTerm)
+                String(value || "")
+                    .toLowerCase()
+                    .includes(searchTerm)
             );
 
             const matchesFilter =
@@ -777,20 +888,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     <td>
                         <div class="career-row-actions">
-                            <button type="button" data-action="edit"
-                                data-id="${escapeHTML(item.id)}">
+                            <button
+                                type="button"
+                                data-action="edit"
+                                data-id="${escapeHTML(item.id)}"
+                            >
                                 Edit
                             </button>
 
-                            <button type="button" data-action="toggle"
-                                data-id="${escapeHTML(item.id)}">
+                            <button
+                                type="button"
+                                data-action="toggle"
+                                data-id="${escapeHTML(item.id)}"
+                            >
                                 ${item.is_published ? "Unpublish" : "Publish"}
                             </button>
 
-                            <button type="button"
+                            <button
+                                type="button"
                                 class="delete-career-button"
                                 data-action="delete"
-                                data-id="${escapeHTML(item.id)}">
+                                data-id="${escapeHTML(item.id)}"
+                            >
                                 Delete
                             </button>
                         </div>
@@ -873,7 +992,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function openEditCareerModal(id) {
-        const item = careers.find(career => String(career.id) === String(id));
+        const item = careers.find(
+            career => String(career.id) === String(id)
+        );
+
         if (!item) return;
 
         resetCareerForm();
@@ -909,7 +1031,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const description = careerDescription.value.trim();
         const requirements = careerRequirements.value.trim();
 
-        if (!title || !department || !location || !employmentType || !description) {
+        if (
+            !title ||
+            !department ||
+            !location ||
+            !employmentType ||
+            !description
+        ) {
             showFormMessage("Please complete all required fields.");
             return;
         }
@@ -957,15 +1085,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
             await loadCareers();
+
         } catch (error) {
             console.error("Career save error:", error);
+
             showFormMessage(
                 error.message || "Unable to save this career position."
             );
+
         } finally {
             isSaving = false;
             saveCareerButton.disabled = false;
-            saveCareerButton.textContent = careerId.value
+
+            saveCareerButton.textContent = careerId?.value
                 ? "Update Position"
                 : "Save Position";
         }
@@ -976,7 +1108,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================================= */
 
     async function toggleCareerStatus(id) {
-        const item = careers.find(career => String(career.id) === String(id));
+        const item = careers.find(
+            career => String(career.id) === String(id)
+        );
+
         if (!item) return;
 
         const nextStatus = !item.is_published;
@@ -996,7 +1131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (error) {
             console.error("Career status update error:", error);
-            showCareerMessage("Unable to update the publication status.", "error");
+
+            showCareerMessage(
+                "Unable to update the publication status.",
+                "error"
+            );
+
             return;
         }
 
@@ -1037,7 +1177,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Career deletion error:", error);
 
             closeModal(deleteModal);
-            showCareerMessage("Unable to delete this career position.", "error");
+
+            showCareerMessage(
+                "Unable to delete this career position.",
+                "error"
+            );
+
             pendingDeleteId = null;
             return;
         }
@@ -1045,7 +1190,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         pendingDeleteId = null;
         closeModal(deleteModal);
 
-        showCareerMessage("Career position deleted successfully.", "success");
+        showCareerMessage(
+            "Career position deleted successfully.",
+            "success"
+        );
+
         await loadCareers();
     }
 
@@ -1053,25 +1202,45 @@ document.addEventListener("DOMContentLoaded", async () => {
        CAREER EVENT LISTENERS
     ========================================= */
 
-    addCareerButton?.addEventListener("click", openAddCareerModal);
-    refreshCareersButton?.addEventListener("click", loadCareers);
+    addCareerButton?.addEventListener(
+        "click",
+        openAddCareerModal
+    );
+
+    refreshCareersButton?.addEventListener(
+        "click",
+        loadCareers
+    );
 
     careerSearch?.addEventListener("input", renderCareers);
     careerFilter?.addEventListener("change", renderCareers);
+
     careerForm?.addEventListener("submit", saveCareer);
 
-    closeCareerModal?.addEventListener("click", () => closeModal(careerModal));
-    cancelCareerButton?.addEventListener("click", () => closeModal(careerModal));
+    closeCareerModal?.addEventListener(
+        "click",
+        () => closeModal(careerModal)
+    );
+
+    cancelCareerButton?.addEventListener(
+        "click",
+        () => closeModal(careerModal)
+    );
 
     cancelDeleteButton?.addEventListener("click", () => {
         pendingDeleteId = null;
         closeModal(deleteModal);
     });
 
-    confirmDeleteButton?.addEventListener("click", deleteCareer);
+    confirmDeleteButton?.addEventListener(
+        "click",
+        deleteCareer
+    );
 
     careerModal?.addEventListener("click", event => {
-        if (event.target === careerModal) closeModal(careerModal);
+        if (event.target === careerModal) {
+            closeModal(careerModal);
+        }
     });
 
     deleteModal?.addEventListener("click", event => {
@@ -1083,6 +1252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     careerTableBody?.addEventListener("click", event => {
         const button = event.target.closest("button[data-action]");
+
         if (!button) return;
 
         const { action, id } = button.dataset;
@@ -1097,6 +1267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             closeModal(careerModal);
             closeModal(deleteModal);
             closeModal(actionOverlay);
+
             pendingDeleteId = null;
         }
     });
@@ -1108,6 +1279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateCurrentDate();
 
     const authorized = await verifyAdmin();
+
     if (!authorized) return;
 
     await loadCareers();
