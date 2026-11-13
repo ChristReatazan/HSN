@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let activeApplicant = null;
     let realtimeChannel = null;
     let isLoading = false;
+    let isUpdatingStatus = false;
 
     /* =========================================
        HELPERS
@@ -527,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <h3>${escapeHTML(name)}</h3>
                     <p>${escapeHTML(getPosition(applicant))}</p>
 
-                    <span class="status-badge status-${escapeHTML(status.toLowerCase())}">
+                    <span class="status-badge status-${escapeHTML(status.toLowerCase().replace(/[^a-z0-9-]/g, ""))}">
                         ${escapeHTML(status)}
                     </span>
                 </div>
@@ -652,10 +653,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* =========================================
        UPDATE APPLICATION STATUS
+       AUTO RETURN TO DASHBOARD
     ========================================= */
 
     async function updateApplicantStatus() {
-        if (!activeApplicant) return;
+        if (!activeApplicant || isUpdatingStatus) return;
 
         const statusSelect = document.getElementById("applicantStatusSelect");
         const updateButton = document.getElementById("updateApplicantStatus");
@@ -670,14 +672,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        isUpdatingStatus = true;
         updateButton.disabled = true;
         updateButton.textContent = "Saving...";
 
         try {
+            const applicantId = activeApplicant.id;
+
             const { data, error } = await supabase
                 .from(APPLICATIONS_TABLE)
                 .update({ status: newStatus })
-                .eq("id", activeApplicant.id)
+                .eq("id", applicantId)
                 .select("id, status")
                 .maybeSingle();
 
@@ -690,20 +695,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             const index = applicants.findIndex(
-                item => String(item.id) === String(activeApplicant.id)
+                item => String(item.id) === String(applicantId)
             );
 
             if (index !== -1) {
                 applicants[index].status = data.status;
-                activeApplicant = applicants[index];
             }
 
             updateStatistics();
             renderApplicants();
 
-            showToast("Application status updated successfully.");
+            // Close profile and return to dashboard after successful update.
+            closeApplicantModal();
 
-            await renderApplicantDetails(activeApplicant);
+            showToast(
+                `Application status updated to ${data.status}.`
+            );
 
         } catch (error) {
             console.error("UPDATE STATUS ERROR:", error);
@@ -715,6 +722,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             updateButton.disabled = false;
             updateButton.textContent = "Save Status";
+
+        } finally {
+            isUpdatingStatus = false;
         }
     }
 
@@ -767,8 +777,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 item => String(item.id) !== String(applicantId)
             );
 
-            if (activeApplicant &&
-                String(activeApplicant.id) === String(applicantId)) {
+            if (
+                activeApplicant &&
+                String(activeApplicant.id) === String(applicantId)
+            ) {
                 closeApplicantModal();
             }
 
@@ -842,7 +854,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     await loadApplicants();
 
-                    if (activeApplicant) {
+                    // Do not reopen or rerender the profile after a status save.
+                    if (activeApplicant && !isUpdatingStatus) {
                         const updatedApplicant = applicants.find(
                             item => String(item.id) === String(activeApplicant.id)
                         );
