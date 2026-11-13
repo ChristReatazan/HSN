@@ -1119,3 +1119,448 @@ button {
         padding-right: 17px;
     }
 }
+
+
+/* =========================================
+   APPLICANT PROFILE MODAL
+========================================= */
+
+#applicantModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+}
+
+#applicantModal.show {
+    display: flex;
+}
+
+.applicant-modal {
+    width: 100%;
+    max-width: 850px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 16px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: applicantModalEnter 0.22s ease;
+}
+
+@keyframes applicantModalEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 25px 30px;
+    border-bottom: 1px solid #edf0f4;
+    background: #ffffff;
+}
+
+.modal-header .eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #8a94a3;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e8edf2;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #fff1f1;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.modal-body {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* =========================================
+   APPLICANT PROFILE HEADING
+========================================= */
+
+.applicant-profile-heading {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    margin-bottom: 22px;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+}
+
+.applicant-profile-avatar {
+    width: 65px;
+    height: 65px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #172033;
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.applicant-profile-heading h3 {
+    margin: 0 0 5px;
+    color: #172033;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.applicant-profile-heading p {
+    margin: 0 0 10px;
+    color: #788497;
+    font-size: 13px;
+}
+
+/* =========================================
+   STATUS BADGES
+========================================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 11px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.status-pending {
+    background: #fff7e6;
+    color: #b7791f;
+}
+
+.status-shortlisted {
+    background: #eaf2ff;
+    color: #2563eb;
+}
+
+.status-accepted {
+    background: #e9f8ef;
+    color: #15803d;
+}
+
+.status-rejected {
+    background: #fff0f0;
+    color: #dc2626;
+}
+
+/* =========================================
+   DETAIL SECTIONS
+========================================= */
+
+.applicant-detail-section {
+    padding: 24px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+}
+
+.applicant-detail-section h3 {
+    margin: 0 0 20px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid #edf0f4;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 30px;
+}
+
+.detail-item {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.detail-item span {
+    color: #8993a2;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.detail-item strong {
+    color: #293548;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   COVER LETTER
+========================================= */
+
+.cover-letter-content {
+    padding: 17px;
+    border: 1px solid #edf0f4;
+    border-radius: 9px;
+    background: #f9fafc;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   RESUME BUTTON
+========================================= */
+
+.resume-download-button {
+    min-height: 43px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 17px;
+    border: 1px solid #172033;
+    border-radius: 8px;
+    background: #172033;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.resume-download-button:hover {
+    background: #2d3b52;
+    border-color: #2d3b52;
+    transform: translateY(-1px);
+}
+
+.resume-unavailable {
+    margin: 0;
+    color: #dc6262;
+    font-size: 12px;
+}
+
+/* =========================================
+   STATUS UPDATE
+========================================= */
+
+.status-update-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-update-controls select {
+    flex: 1;
+    min-width: 0;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #dce2e9;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #293548;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.status-update-controls select:focus {
+    border-color: #64748b;
+}
+
+.update-status-button {
+    min-height: 43px;
+    padding: 0 19px;
+    border: 1px solid #172033;
+    border-radius: 8px;
+    background: #172033;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.update-status-button:hover {
+    background: #2d3b52;
+}
+
+.update-status-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   MODAL FOOTER
+========================================= */
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 17px 30px;
+    border-top: 1px solid #edf0f4;
+    background: #ffffff;
+}
+
+.secondary-button {
+    min-height: 40px;
+    padding: 0 20px;
+    border: 1px solid #dce2e9;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #475569;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.secondary-button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+/* =========================================
+   LOADING STATE
+========================================= */
+
+.modal-loading {
+    padding: 45px 20px;
+    color: #8792a2;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 650px) {
+    #applicantModal {
+        padding: 10px;
+    }
+
+    .applicant-modal {
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        padding: 19px;
+    }
+
+    .modal-header h2 {
+        font-size: 19px;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .applicant-profile-heading {
+        padding: 17px;
+        gap: 13px;
+    }
+
+    .applicant-profile-avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 17px;
+    }
+
+    .applicant-profile-heading h3 {
+        font-size: 16px;
+    }
+
+    .applicant-detail-section {
+        padding: 17px;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+
+    .status-update-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .status-update-controls select,
+    .update-status-button {
+        width: 100%;
+    }
+
+    .modal-footer {
+        padding: 14px 19px;
+    }
+}
