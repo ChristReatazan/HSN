@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let pendingDeleteId = null;
     let isSaving = false;
     let currentAdmin = null;
+    let isLoggingOut = false;
 
     function escapeHTML(value) {
         return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -145,7 +146,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (sessionError) {
                 console.error("Session verification error:", sessionError);
-                window.location.replace("index.html");
                 return false;
             }
 
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     profile
                 });
 
-                await supabase.auth.signOut();
+                alert("Your account does not have administrator access.");
                 window.location.replace("index.html");
                 return false;
             }
@@ -231,18 +231,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function logout() {
+        if (isLoggingOut) return;
+
+        const confirmed = window.confirm(
+            "Are you sure you want to sign out of your administrator account?"
+        );
+
+        if (!confirmed) return;
+
+        isLoggingOut = true;
+
+        if (logoutButton) logoutButton.disabled = true;
+        if (footerLogout) footerLogout.style.pointerEvents = "none";
+
         const { error } = await supabase.auth.signOut();
 
         if (error) {
             console.error("Logout error:", error);
+
             alert("Unable to sign out. Please try again.");
+
+            isLoggingOut = false;
+
+            if (logoutButton) logoutButton.disabled = false;
+            if (footerLogout) footerLogout.style.pointerEvents = "";
+
             return;
         }
 
         window.location.replace("index.html");
     }
 
-    logoutButton?.addEventListener("click", logout);
+    logoutButton?.addEventListener("click", event => {
+        event.preventDefault();
+        logout();
+    });
 
     footerLogout?.addEventListener("click", event => {
         event.preventDefault();
@@ -534,35 +557,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             actionFields.innerHTML = `
                 <div class="admin-action-field">
                     <label for="newAdminName">Full Name</label>
-                    <input
-                        id="newAdminName"
-                        type="text"
-                        maxlength="120"
-                        autocomplete="name"
-                        required
-                    >
+                    <input id="newAdminName" type="text" maxlength="120" autocomplete="name" required>
                 </div>
 
                 <div class="admin-action-field">
                     <label for="newAdminEmail">Email Address</label>
-                    <input
-                        id="newAdminEmail"
-                        type="email"
-                        maxlength="254"
-                        autocomplete="email"
-                        required
-                    >
+                    <input id="newAdminEmail" type="email" maxlength="254" autocomplete="email" required>
                 </div>
 
                 <div class="admin-action-field">
                     <label for="newAdminPassword">Temporary Password</label>
-                    <input
-                        id="newAdminPassword"
-                        type="password"
-                        minlength="8"
-                        autocomplete="new-password"
-                        required
-                    >
+                    <input id="newAdminPassword" type="password" minlength="8" autocomplete="new-password" required>
                 </div>
             `;
 
@@ -577,24 +582,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             actionFields.innerHTML = `
                 <div class="admin-action-field">
                     <label for="newPassword">New Password</label>
-                    <input
-                        id="newPassword"
-                        type="password"
-                        minlength="8"
-                        autocomplete="new-password"
-                        required
-                    >
+                    <input id="newPassword" type="password" minlength="8" autocomplete="new-password" required>
                 </div>
 
                 <div class="admin-action-field">
                     <label for="confirmNewPassword">Confirm New Password</label>
-                    <input
-                        id="confirmNewPassword"
-                        type="password"
-                        minlength="8"
-                        autocomplete="new-password"
-                        required
-                    >
+                    <input id="confirmNewPassword" type="password" minlength="8" autocomplete="new-password" required>
                 </div>
             `;
 
@@ -719,15 +712,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 if (password !== confirmPassword) {
-                    showAdminActionMessage(
-                        "The passwords do not match."
-                    );
+                    showAdminActionMessage("The passwords do not match.");
                     return;
                 }
 
-                const { error } = await supabase.auth.updateUser({
-                    password
-                });
+                const { error } = await supabase.auth.updateUser({ password });
 
                 if (error) throw error;
 
@@ -833,30 +822,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     <td>
                         <div class="career-row-actions">
-                            <button
-                                type="button"
-                                data-action="edit"
-                                data-id="${escapeHTML(item.id)}"
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                type="button"
-                                data-action="toggle"
-                                data-id="${escapeHTML(item.id)}"
-                            >
+                            <button type="button" data-action="edit" data-id="${escapeHTML(item.id)}">Edit</button>
+                            <button type="button" data-action="toggle" data-id="${escapeHTML(item.id)}">
                                 ${item.is_published ? "Unpublish" : "Publish"}
                             </button>
-
-                            <button
-                                type="button"
-                                class="delete-career-button"
-                                data-action="delete"
-                                data-id="${escapeHTML(item.id)}"
-                            >
-                                Delete
-                            </button>
+                            <button type="button" class="delete-career-button" data-action="delete" data-id="${escapeHTML(item.id)}">Delete</button>
                         </div>
                     </td>
                 </tr>
