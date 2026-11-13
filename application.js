@@ -5,620 +5,903 @@ document.addEventListener("DOMContentLoaded", async () => {
     const SUPABASE_URL = "https://qpcsskiocfeeodunpcxa.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_oiJHNFVdHWa-aATe_HWJoQ_RLB2m8BZ";
 
-    const APPLICATIONS_TABLE = "career_applications";
-    const CAREERS_TABLE = "careers";
-    const RESUME_BUCKET = "career-resumes";
-
     const supabase = window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY
     );
 
+    const avatar = document.getElementById("adminAvatar");
+    const profile = document.querySelector(".admin-profile");
+
+    if (!avatar || !profile) return;
+
     let applications = [];
     let careers = [];
-    let activeApplication = null;
+    let dropdownOpen = false;
 
-    const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    })[character]);
+    const escapeHTML = value =>
+        String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[char]);
 
-    function formatDate(value) {
+    const formatDate = value => {
         if (!value) return "Date unavailable";
 
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) return "Date unavailable";
-
         return new Intl.DateTimeFormat("en-PH", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
-        }).format(date);
-    }
+            dateStyle: "medium",
+            timeStyle: "short"
+        }).format(new Date(value));
+    };
 
-    function getCareer(application) {
-        return careers.find(item =>
-            String(item.id) === String(application.career_id)
-        );
-    }
+    /* =========================================
+       INJECT STYLES
+    ========================================= */
 
-    function getPositionTitle(application) {
-        return getCareer(application)?.title || "Position no longer available";
-    }
+    const styles = document.createElement("style");
 
-    function createApplicantSection() {
-        if (document.getElementById("applicantManagement")) return;
+    styles.textContent = `
+        .admin-profile {
+            position: relative;
+        }
 
-        const section = document.createElement("section");
-        section.id = "applicantManagement";
-        section.className = "applicant-management";
+        #adminAvatar {
+            cursor: pointer;
+            border: 0;
+            position: relative;
+            transition: .2s ease;
+        }
 
-        section.innerHTML = `
-            <div class="applicant-heading">
+        #adminAvatar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 16px rgba(8,125,193,.25);
+        }
+
+        .applicant-notification-badge {
+            position: absolute;
+            top: -7px;
+            right: -8px;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 5px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            background: #e53945;
+            color: #fff;
+            border: 2px solid #fff;
+            font-size: 10px;
+            font-weight: 800;
+            z-index: 5;
+        }
+
+        .applicant-dropdown {
+            position: absolute;
+            top: calc(100% + 17px);
+            right: 0;
+            width: 390px;
+            max-width: calc(100vw - 30px);
+            background: #fff;
+            border: 1px solid #e7edf2;
+            border-radius: 15px;
+            box-shadow: 0 18px 55px rgba(7,27,43,.18);
+            z-index: 9999;
+            overflow: hidden;
+            display: none;
+            color: #172b3a;
+            animation: applicantDropIn .2s ease;
+        }
+
+        .applicant-dropdown.active {
+            display: block;
+        }
+
+        @keyframes applicantDropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-7px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .applicant-dropdown-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #edf1f4;
+        }
+
+        .applicant-dropdown-header h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 750;
+            color: #071b2b;
+        }
+
+        .applicant-dropdown-header p {
+            margin: 5px 0 0;
+            color: #7a8995;
+            font-size: 12px;
+        }
+
+        .applicant-unread-count {
+            background: #eaf5fc;
+            color: #087dc1;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .applicant-dropdown-actions {
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f2f4;
+        }
+
+        .applicant-dropdown-actions button {
+            border: 0;
+            background: transparent;
+            color: #087dc1;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .applicant-list {
+            max-height: 390px;
+            overflow-y: auto;
+        }
+
+        .applicant-item {
+            width: 100%;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            text-align: left;
+            padding: 15px 18px;
+            border: 0;
+            border-bottom: 1px solid #f0f2f4;
+            background: #fff;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+        .applicant-item:hover {
+            background: #f5faff;
+        }
+
+        .applicant-item.unread {
+            background: #f1f8fd;
+        }
+
+        .applicant-item.unread:hover {
+            background: #eaf5fc;
+        }
+
+        .applicant-item-icon {
+            flex: 0 0 38px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #eaf5fc;
+            color: #087dc1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .applicant-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .applicant-item-name {
+            display: block;
+            font-size: 13px;
+            color: #102d42;
+            font-weight: 750;
+            margin-bottom: 4px;
+        }
+
+        .applicant-item-position {
+            display: block;
+            color: #657684;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .applicant-item-date {
+            display: block;
+            color: #9aa5ae;
+            font-size: 10px;
+            margin-top: 6px;
+        }
+
+        .applicant-item-dot {
+            width: 8px;
+            height: 8px;
+            background: #087dc1;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex: 0 0 8px;
+        }
+
+        .applicant-empty,
+        .applicant-loading,
+        .applicant-error {
+            padding: 35px 20px;
+            text-align: center;
+            color: #82909b;
+            font-size: 13px;
+        }
+
+        .applicant-dropdown-footer {
+            padding: 13px 18px;
+            border-top: 1px solid #edf1f4;
+            text-align: center;
+            color: #87939c;
+            font-size: 11px;
+        }
+
+        .applicant-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            background: rgba(5,20,32,.62);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .applicant-detail-overlay.active {
+            display: flex;
+        }
+
+        .applicant-detail-modal {
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 17px;
+            box-shadow: 0 25px 70px rgba(0,0,0,.22);
+        }
+
+        .applicant-detail-header {
+            padding: 23px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #edf1f4;
+        }
+
+        .applicant-detail-header h2 {
+            color: #071b2b;
+            font-size: 21px;
+            margin: 5px 0;
+        }
+
+        .applicant-detail-header p {
+            font-size: 12px;
+            color: #83909a;
+            margin: 0;
+        }
+
+        .applicant-detail-close {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 50%;
+            background: #f1f4f6;
+            color: #52616d;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .applicant-detail-body {
+            padding: 25px;
+        }
+
+        .applicant-detail-eyebrow {
+            color: #087dc1;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
+        }
+
+        .applicant-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .applicant-detail-field {
+            min-width: 0;
+        }
+
+        .applicant-detail-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .applicant-detail-field label {
+            display: block;
+            color: #8996a0;
+            font-size: 10px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            margin-bottom: 6px;
+        }
+
+        .applicant-detail-field div {
+            color: #1c3446;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .applicant-resume-card {
+            margin-top: 24px;
+            padding: 17px;
+            border: 1px solid #dceaf3;
+            background: #f5faff;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .applicant-resume-info strong {
+            display: block;
+            color: #17354b;
+            font-size: 13px;
+        }
+
+        .applicant-resume-info span {
+            display: block;
+            color: #83909a;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .applicant-resume-button {
+            border: 0;
+            background: #087dc1;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 750;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .applicant-resume-button:hover {
+            background: #06669f;
+        }
+
+        @media(max-width: 600px) {
+            .applicant-dropdown {
+                position: fixed;
+                top: 82px;
+                right: 12px;
+                width: calc(100vw - 24px);
+            }
+
+            .applicant-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .applicant-detail-field.full {
+                grid-column: auto;
+            }
+
+            .applicant-resume-card {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    `;
+
+    document.head.appendChild(styles);
+
+    /* =========================================
+       CREATE NOTIFICATION INTERFACE
+    ========================================= */
+
+    avatar.setAttribute("role", "button");
+    avatar.setAttribute("tabindex", "0");
+    avatar.setAttribute("aria-label", "Open applicant notifications");
+    avatar.setAttribute("aria-expanded", "false");
+
+    const badge = document.createElement("span");
+    badge.className = "applicant-notification-badge";
+    badge.id = "applicantNotificationBadge";
+    avatar.appendChild(badge);
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "applicant-dropdown";
+    dropdown.innerHTML = `
+        <div class="applicant-dropdown-header">
+            <div>
+                <h3>Applicants</h3>
+                <p>Recent career applications</p>
+            </div>
+            <span class="applicant-unread-count" id="applicantUnreadCount">
+                0 NEW
+            </span>
+        </div>
+
+        <div class="applicant-dropdown-actions">
+            <span style="font-size:11px;color:#82909b;">
+                Application notifications
+            </span>
+            <button type="button" id="refreshApplicants">
+                ↻ Refresh
+            </button>
+        </div>
+
+        <div class="applicant-list" id="applicantList">
+            <div class="applicant-loading">Loading applicants...</div>
+        </div>
+
+        <div class="applicant-dropdown-footer">
+            HSN Philippines · Applicant Notifications
+        </div>
+    `;
+
+    profile.appendChild(dropdown);
+
+    const detailOverlay = document.createElement("div");
+    detailOverlay.className = "applicant-detail-overlay";
+    detailOverlay.id = "applicantDetailOverlay";
+
+    detailOverlay.innerHTML = `
+        <div class="applicant-detail-modal" role="dialog" aria-modal="true">
+            <div class="applicant-detail-header">
                 <div>
-                    <span class="admin-section-eyebrow">RECRUITMENT MANAGEMENT</span>
-                    <h2>Applicant <span>Management</span></h2>
-                    <p>Review applications and access submitted applicant documents.</p>
+                    <span class="applicant-detail-eyebrow">APPLICATION DETAILS</span>
+                    <h2 id="applicantDetailName">Applicant</h2>
+                    <p id="applicantDetailPosition">Position</p>
                 </div>
 
-                <button type="button" class="applicant-refresh" id="refreshApplications">
-                    ↻ Refresh Applications
+                <button type="button"
+                    class="applicant-detail-close"
+                    id="closeApplicantDetails"
+                    aria-label="Close">
+                    &times;
                 </button>
             </div>
 
-            <div class="applicant-stats">
-                <div class="applicant-stat-card">
-                    <span>Total Applications</span>
-                    <strong id="applicationTotal">0</strong>
-                    <small>All submitted applications</small>
-                </div>
+            <div class="applicant-detail-body" id="applicantDetailBody"></div>
+        </div>
+    `;
 
-                <div class="applicant-stat-card">
-                    <span>Positions Applied</span>
-                    <strong id="applicationPositions">0</strong>
-                    <small>Unique career positions</small>
-                </div>
+    document.body.appendChild(detailOverlay);
 
-                <div class="applicant-stat-card">
-                    <span>Latest Application</span>
-                    <strong id="applicationLatest">—</strong>
-                    <small>Most recent submission</small>
-                </div>
-            </div>
+    const applicantList = dropdown.querySelector("#applicantList");
+    const unreadCount = dropdown.querySelector("#applicantUnreadCount");
 
-            <div class="applicant-panel">
-                <div class="applicant-panel-header">
-                    <div>
-                        <h3>Submitted Applications</h3>
-                        <p id="applicationResultCount">Loading applications...</p>
-                    </div>
+    /* =========================================
+       DROPDOWN CONTROLS
+    ========================================= */
 
-                    <div class="applicant-toolbar">
-                        <div class="applicant-search">
-                            <span>⌕</span>
-                            <input
-                                type="search"
-                                id="applicationSearch"
-                                placeholder="Search name, email or position..."
-                            >
-                        </div>
+    function toggleDropdown(force) {
+        dropdownOpen = typeof force === "boolean" ? force : !dropdownOpen;
 
-                        <select id="applicationPositionFilter">
-                            <option value="all">All Positions</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="applicant-message" id="applicationAdminMessage"></div>
-
-                <div class="applicant-table-wrapper">
-                    <table class="applicant-table">
-                        <thead>
-                            <tr>
-                                <th>Applicant</th>
-                                <th>Position Applied</th>
-                                <th>Contact Information</th>
-                                <th>Date Submitted</th>
-                                <th>Resume</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="applicantTableBody">
-                            <tr>
-                                <td colspan="6" class="applicant-empty">
-                                    Loading applications...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="applicant-table-footer">
-                    <span>HSN PHILIPPINES · RECRUITMENT PORTAL</span>
-                    <span id="applicationFooterCount">0 APPLICATIONS</span>
-                </div>
-            </div>
-
-            <div class="applicant-modal-overlay" id="applicantDetailModal" aria-hidden="true">
-                <div class="applicant-detail-modal" role="dialog" aria-modal="true" aria-labelledby="applicantDetailTitle">
-                    <div class="applicant-modal-header">
-                        <div>
-                            <span>APPLICATION RECORD</span>
-                            <h2 id="applicantDetailTitle">Applicant Details</h2>
-                        </div>
-
-                        <button type="button" id="closeApplicantModal" aria-label="Close">×</button>
-                    </div>
-
-                    <div class="applicant-modal-content" id="applicantDetailContent"></div>
-
-                    <div class="applicant-modal-footer">
-                        <button type="button" class="applicant-close-button" id="closeApplicantModalBottom">
-                            Close Details
-                        </button>
-                        <button type="button" class="applicant-resume-button" id="applicantResumeButton">
-                            View Uploaded Resume ↗
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const careerManagement = document.querySelector(".career-management");
-
-        if (careerManagement) {
-            careerManagement.parentNode.insertBefore(section, careerManagement);
-        } else {
-            document.body.appendChild(section);
-        }
+        dropdown.classList.toggle("active", dropdownOpen);
+        avatar.setAttribute("aria-expanded", String(dropdownOpen));
     }
 
-    function showMessage(message, type = "info") {
-        const element = document.getElementById("applicationAdminMessage");
+    avatar.addEventListener("click", event => {
+        event.stopPropagation();
+        toggleDropdown();
+    });
 
-        if (!element) return;
-
-        element.textContent = message;
-        element.className = `applicant-message ${type}`;
-    }
-
-    async function verifyAdmin() {
-        const { data: { session }, error: sessionError } =
-            await supabase.auth.getSession();
-
-        if (sessionError || !session) {
-            window.location.replace("index.html");
-            return false;
+    avatar.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleDropdown();
         }
+    });
 
-        const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .maybeSingle();
+    dropdown.addEventListener("click", event => {
+        event.stopPropagation();
+    });
 
-        if (error || !profile || profile.role !== "admin") {
-            await supabase.auth.signOut();
-            window.location.replace("index.html");
-            return false;
+    document.addEventListener("click", event => {
+        if (!profile.contains(event.target)) {
+            toggleDropdown(false);
         }
+    });
 
-        return true;
-    }
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            toggleDropdown(false);
+            closeDetails();
+        }
+    });
 
-    async function loadApplications() {
-        const tbody = document.getElementById("applicantTableBody");
+    dropdown.querySelector("#refreshApplicants").addEventListener(
+        "click",
+        loadApplications
+    );
 
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="applicant-empty">
-                    Loading submitted applications...
-                </td>
-            </tr>
-        `;
+    /* =========================================
+       LOAD CAREER TITLES
+    ========================================= */
 
-        const [applicationResult, careerResult] = await Promise.all([
-            supabase
-                .from(APPLICATIONS_TABLE)
-                .select("*")
-                .order("created_at", { ascending: false }),
+    async function loadCareerTitles() {
+        const { data, error } = await supabase
+            .from("careers")
+            .select("id, title, department");
 
-            supabase
-                .from(CAREERS_TABLE)
-                .select("id, title, department, location, employment_type")
-        ]);
-
-        if (applicationResult.error) {
-            console.error("Application loading error:", applicationResult.error);
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="applicant-empty">
-                        Unable to load applications. Check your database permissions.
-                    </td>
-                </tr>
-            `;
-
-            showMessage(
-                applicationResult.error.message || "Unable to retrieve applications.",
-                "error"
-            );
-
+        if (error) {
+            console.error("Unable to load career titles:", error);
+            careers = [];
             return;
         }
 
-        if (careerResult.error) {
-            console.error("Career lookup error:", careerResult.error);
-            careers = [];
+        careers = data || [];
+    }
+
+    function getPosition(application) {
+        const career = careers.find(
+            item => String(item.id) === String(application.career_id)
+        );
+
+        return career?.title || "Position no longer available";
+    }
+
+    /* =========================================
+       UPDATE NOTIFICATION BADGE
+    ========================================= */
+
+    function updateBadge() {
+        const unread = applications.filter(item => !item.is_read).length;
+
+        unreadCount.textContent = `${unread} NEW`;
+
+        if (unread > 0) {
+            badge.textContent = unread > 99 ? "99+" : unread;
+            badge.style.display = "flex";
         } else {
-            careers = careerResult.data || [];
+            badge.style.display = "none";
         }
-
-        applications = applicationResult.data || [];
-
-        populatePositionFilter();
-        renderApplications();
-        updateApplicationStats();
-
-        showMessage(
-            applications.length
-                ? "Application records loaded successfully."
-                : "No applications have been submitted yet.",
-            "success"
-        );
     }
 
-    function populatePositionFilter() {
-        const filter = document.getElementById("applicationPositionFilter");
-        const currentValue = filter.value;
-
-        const positions = [...new Set(
-            applications.map(getPositionTitle).filter(Boolean)
-        )].sort((a, b) => a.localeCompare(b));
-
-        filter.innerHTML = `
-            <option value="all">All Positions</option>
-            ${positions.map(position => `
-                <option value="${escapeHTML(position)}">${escapeHTML(position)}</option>
-            `).join("")}
-        `;
-
-        filter.value = positions.includes(currentValue) ? currentValue : "all";
-    }
-
-    function updateApplicationStats() {
-        document.getElementById("applicationTotal").textContent =
-            applications.length;
-
-        const uniquePositions = new Set(
-            applications.map(item => String(item.career_id))
-        );
-
-        document.getElementById("applicationPositions").textContent =
-            uniquePositions.size;
-
-        document.getElementById("applicationLatest").textContent =
-            applications.length
-                ? formatDate(applications[0].created_at).split(",")[0]
-                : "—";
-
-        document.getElementById("applicationFooterCount").textContent =
-            `${applications.length} APPLICATION${applications.length === 1 ? "" : "S"}`;
-    }
-
-    function getFilteredApplications() {
-        const search = document
-            .getElementById("applicationSearch")
-            .value.trim()
-            .toLowerCase();
-
-        const position = document
-            .getElementById("applicationPositionFilter")
-            .value;
-
-        return applications.filter(application => {
-            const searchable = [
-                application.full_name,
-                application.email,
-                application.contact_number,
-                application.address,
-                getPositionTitle(application)
-            ].join(" ").toLowerCase();
-
-            return (
-                (!search || searchable.includes(search)) &&
-                (position === "all" || getPositionTitle(application) === position)
-            );
-        });
-    }
+    /* =========================================
+       RENDER APPLICANTS
+    ========================================= */
 
     function renderApplications() {
-        const tbody = document.getElementById("applicantTableBody");
-        const filtered = getFilteredApplications();
+        updateBadge();
 
-        document.getElementById("applicationResultCount").textContent =
-            `${filtered.length} applicant${filtered.length === 1 ? "" : "s"} found`;
-
-        if (!filtered.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="applicant-empty">
-                        No matching applications found.
-                    </td>
-                </tr>
+        if (!applications.length) {
+            applicantList.innerHTML = `
+                <div class="applicant-empty">
+                    <div style="font-size:28px;margin-bottom:10px;">♧</div>
+                    <strong style="display:block;color:#17354b;margin-bottom:5px;">
+                        No applications yet
+                    </strong>
+                    <span>New applicants will appear here.</span>
+                </div>
             `;
             return;
         }
 
-        tbody.innerHTML = filtered.map(application => {
-            const career = getCareer(application);
-            const hasResume = Boolean(application.resume_path);
+        applicantList.innerHTML = applications.map(application => {
+            const name = escapeHTML(application.full_name);
+            const position = escapeHTML(getPosition(application));
+            const date = escapeHTML(formatDate(application.created_at));
 
             return `
-                <tr>
-                    <td>
-                        <div class="applicant-person">
-                            <span class="applicant-avatar">
-                                ${escapeHTML((application.full_name || "A").charAt(0).toUpperCase())}
-                            </span>
-                            <div>
-                                <strong>${escapeHTML(application.full_name)}</strong>
-                                <small>${escapeHTML(application.email)}</small>
-                            </div>
-                        </div>
-                    </td>
+                <button
+                    type="button"
+                    class="applicant-item ${application.is_read ? "" : "unread"}"
+                    data-application-id="${escapeHTML(application.id)}"
+                >
+                    <span class="applicant-item-icon">
+                        ${escapeHTML(
+                            String(application.full_name || "A")
+                                .trim()
+                                .charAt(0)
+                                .toUpperCase()
+                        )}
+                    </span>
 
-                    <td>
-                        <strong class="applicant-position">
-                            ${escapeHTML(career?.title || "Position unavailable")}
-                        </strong>
-                        <small class="applicant-department">
-                            ${escapeHTML(career?.department || "Department unavailable")}
-                        </small>
-                    </td>
+                    <span class="applicant-item-content">
+                        <span class="applicant-item-name">${name}</span>
+                        <span class="applicant-item-position">${position}</span>
+                        <span class="applicant-item-date">${date}</span>
+                    </span>
 
-                    <td>
-                        <span class="applicant-contact">${escapeHTML(application.contact_number)}</span>
-                        <small class="applicant-address">
-                            ${escapeHTML(application.address)}
-                        </small>
-                    </td>
-
-                    <td>
-                        <span class="applicant-date">
-                            ${escapeHTML(formatDate(application.created_at))}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="applicant-resume-status ${hasResume ? "available" : "missing"}">
-                            ${hasResume ? "PDF ATTACHED" : "NO RESUME"}
-                        </span>
-                    </td>
-
-                    <td>
-                        <button
-                            type="button"
-                            class="applicant-view-button"
-                            data-application-id="${escapeHTML(application.id)}"
-                        >
-                            View Details →
-                        </button>
-                    </td>
-                </tr>
+                    ${application.is_read ? "" : '<span class="applicant-item-dot"></span>'}
+                </button>
             `;
         }).join("");
     }
 
-    function detailRow(label, value) {
-        return `
-            <div class="applicant-detail-item">
-                <span>${escapeHTML(label)}</span>
-                <strong>${escapeHTML(value || "Not provided")}</strong>
-            </div>
-        `;
-    }
+    /* =========================================
+       LOAD APPLICATIONS
+    ========================================= */
 
-    function openApplicantDetails(id) {
-        const application = applications.find(item =>
-            String(item.id) === String(id)
-        );
-
-        if (!application) return;
-
-        activeApplication = application;
-
-        const career = getCareer(application);
-        const content = document.getElementById("applicantDetailContent");
-
-        document.getElementById("applicantDetailTitle").textContent =
-            application.full_name || "Applicant Details";
-
-        content.innerHTML = `
-            <div class="applicant-detail-banner">
-                <div class="applicant-detail-avatar">
-                    ${escapeHTML((application.full_name || "A").charAt(0).toUpperCase())}
-                </div>
-
-                <div>
-                    <span>APPLICANT</span>
-                    <h3>${escapeHTML(application.full_name)}</h3>
-                    <p>${escapeHTML(application.email)}</p>
-                </div>
-            </div>
-
-            <section class="applicant-detail-section">
-                <h3>Personal Information</h3>
-                <div class="applicant-detail-grid">
-                    ${detailRow("Full Name", application.full_name)}
-                    ${detailRow("Email Address", application.email)}
-                    ${detailRow("Contact Number", application.contact_number)}
-                    ${detailRow("Complete Address", application.address)}
-                </div>
-            </section>
-
-            <section class="applicant-detail-section">
-                <h3>Position Information</h3>
-                <div class="applicant-detail-grid">
-                    ${detailRow("Position Applied", career?.title || "Position unavailable")}
-                    ${detailRow("Department", career?.department)}
-                    ${detailRow("Location", career?.location)}
-                    ${detailRow("Employment Type", career?.employment_type)}
-                    ${detailRow(
-                        "Expected Salary",
-                        application.expected_salary === null ||
-                        application.expected_salary === undefined ||
-                        application.expected_salary === ""
-                            ? "Not specified"
-                            : `₱${Number(application.expected_salary).toLocaleString("en-PH")}`
-                    )}
-                    ${detailRow("Date Submitted", formatDate(application.created_at))}
-                </div>
-            </section>
-
-            <section class="applicant-detail-section">
-                <h3>Cover Letter</h3>
-                <div class="applicant-cover-letter">
-                    ${escapeHTML(application.cover_letter || "No cover letter provided.")}
-                </div>
-            </section>
-
-            <section class="applicant-detail-section applicant-document-section">
-                <div>
-                    <span class="applicant-document-icon">PDF</span>
-                    <div>
-                        <strong>Applicant Resume</strong>
-                        <small>${application.resume_path ? "A resume has been uploaded." : "No resume was attached."}</small>
-                    </div>
-                </div>
-
-                <span class="applicant-document-state ${application.resume_path ? "available" : "missing"}">
-                    ${application.resume_path ? "AVAILABLE" : "MISSING"}
-                </span>
-            </section>
+    async function loadApplications() {
+        applicantList.innerHTML = `
+            <div class="applicant-loading">Loading applicants...</div>
         `;
 
-        const resumeButton = document.getElementById("applicantResumeButton");
-        resumeButton.disabled = !application.resume_path;
-        resumeButton.textContent = application.resume_path
-            ? "View Uploaded Resume ↗"
-            : "No Resume Available";
-
-        const modal = document.getElementById("applicantDetailModal");
-        modal.classList.add("active");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-    }
-
-    function closeApplicantDetails() {
-        const modal = document.getElementById("applicantDetailModal");
-
-        modal.classList.remove("active");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.style.overflow = "";
-        activeApplication = null;
-    }
-
-    async function viewApplicantResume() {
-        if (!activeApplication?.resume_path) return;
-
-        const newWindow = window.open("about:blank", "_blank");
-
-        if (newWindow) {
-            newWindow.document.write(
-                "<p style='font-family:Arial;padding:30px'>Preparing secure resume preview...</p>"
-            );
-        }
+        await loadCareerTitles();
 
         const { data, error } = await supabase
-            .storage
-            .from(RESUME_BUCKET)
-            .createSignedUrl(activeApplication.resume_path, 60);
+            .from("career_applications")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-        if (error || !data?.signedUrl) {
-            if (newWindow) newWindow.close();
+        if (error) {
+            console.error("Application loading error:", error);
 
-            console.error("Resume access error:", error);
-
-            showMessage(
-                "Unable to open the resume. Check the Storage bucket and its permissions.",
-                "error"
-            );
+            applicantList.innerHTML = `
+                <div class="applicant-error">
+                    Unable to load applicants.<br>
+                    Please check your Supabase permissions and RLS policies.
+                </div>
+            `;
 
             return;
         }
 
-        if (newWindow) {
-            newWindow.location.href = data.signedUrl;
-        } else {
-            window.location.href = data.signedUrl;
-        }
+        applications = data || [];
+        renderApplications();
     }
 
-    async function initialize() {
-        createApplicantSection();
+    /* =========================================
+       MARK AS READ
+    ========================================= */
 
-        const authorized = await verifyAdmin();
+    async function markAsRead(id) {
+        const application = applications.find(
+            item => String(item.id) === String(id)
+        );
 
-        if (!authorized) return;
+        if (!application || application.is_read) return;
 
-        document
-            .getElementById("refreshApplications")
-            .addEventListener("click", loadApplications);
+        const { error } = await supabase
+            .from("career_applications")
+            .update({ is_read: true })
+            .eq("id", id);
 
-        document
-            .getElementById("applicationSearch")
-            .addEventListener("input", renderApplications);
+        if (error) {
+            console.error("Unable to mark application as read:", error);
+            return;
+        }
 
-        document
-            .getElementById("applicationPositionFilter")
-            .addEventListener("change", renderApplications);
+        application.is_read = true;
+        renderApplications();
+    }
 
-        document
-            .getElementById("applicantTableBody")
-            .addEventListener("click", event => {
-                const button = event.target.closest("[data-application-id]");
-                if (button) openApplicantDetails(button.dataset.applicationId);
-            });
+    /* =========================================
+       APPLICATION DETAILS
+    ========================================= */
 
-        document
-            .getElementById("closeApplicantModal")
-            .addEventListener("click", closeApplicantDetails);
+    function detailField(label, value, full = false) {
+        return `
+            <div class="applicant-detail-field ${full ? "full" : ""}">
+                <label>${escapeHTML(label)}</label>
+                <div>${escapeHTML(value || "Not provided")}</div>
+            </div>
+        `;
+    }
 
-        document
-            .getElementById("closeApplicantModalBottom")
-            .addEventListener("click", closeApplicantDetails);
+    function closeDetails() {
+        detailOverlay.classList.remove("active");
+        document.body.style.overflow = "";
+    }
 
-        document
-            .getElementById("applicantResumeButton")
-            .addEventListener("click", viewApplicantResume);
+    async function openDetails(id) {
+        const application = applications.find(
+            item => String(item.id) === String(id)
+        );
 
-        document
-            .getElementById("applicantDetailModal")
-            .addEventListener("click", event => {
-                if (event.target.id === "applicantDetailModal") {
-                    closeApplicantDetails();
+        if (!application) return;
+
+        await markAsRead(id);
+
+        document.getElementById("applicantDetailName").textContent =
+            application.full_name || "Applicant";
+
+        document.getElementById("applicantDetailPosition").textContent =
+            getPosition(application);
+
+        const body = document.getElementById("applicantDetailBody");
+
+        body.innerHTML = `
+            <span class="applicant-detail-eyebrow">
+                PERSONAL INFORMATION
+            </span>
+
+            <div class="applicant-detail-grid">
+                ${detailField("Full Name", application.full_name)}
+                ${detailField("Email Address", application.email)}
+                ${detailField("Contact Number", application.contact_number)}
+                ${detailField("Expected Salary", application.expected_salary)}
+                ${detailField("Address", application.address, true)}
+                ${detailField("Position Applied", getPosition(application))}
+                ${detailField("Application Date", formatDate(application.created_at))}
+                ${detailField("Application ID", application.id, true)}
+                ${detailField("Cover Letter", application.cover_letter, true)}
+            </div>
+
+            <div class="applicant-resume-card">
+                <div class="applicant-resume-info">
+                    <strong>Uploaded Resume</strong>
+                    <span>${application.resume_path
+                        ? escapeHTML(application.resume_path.split("/").pop())
+                        : "No resume uploaded"}</span>
+                </div>
+
+                ${
+                    application.resume_path
+                        ? `<button type="button"
+                            class="applicant-resume-button"
+                            id="viewApplicantResume">
+                            View Resume ↗
+                           </button>`
+                        : ""
+                }
+            </div>
+        `;
+
+        detailOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        const resumeButton = document.getElementById("viewApplicantResume");
+
+        resumeButton?.addEventListener("click", async () => {
+            const originalText = resumeButton.textContent;
+
+            resumeButton.disabled = true;
+            resumeButton.textContent = "Preparing...";
+
+            const { data, error } = await supabase.storage
+                .from("career-resumes")
+                .createSignedUrl(application.resume_path, 60);
+
+            resumeButton.disabled = false;
+            resumeButton.textContent = originalText;
+
+            if (error || !data?.signedUrl) {
+                console.error("Resume access error:", error);
+                alert("Unable to open the resume. Please check Storage permissions.");
+                return;
+            }
+
+            window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+        });
+    }
+
+    applicantList.addEventListener("click", event => {
+        const item = event.target.closest("[data-application-id]");
+
+        if (!item) return;
+
+        openDetails(item.dataset.applicationId);
+    });
+
+    document.getElementById("closeApplicantDetails").addEventListener(
+        "click",
+        closeDetails
+    );
+
+    detailOverlay.addEventListener("click", event => {
+        if (event.target === detailOverlay) {
+            closeDetails();
+        }
+    });
+
+    /* =========================================
+       REALTIME APPLICATION NOTIFICATIONS
+    ========================================= */
+
+    let applicationChannel = null;
+
+    function subscribeToApplications() {
+        if (applicationChannel) {
+            supabase.removeChannel(applicationChannel);
+        }
+
+        applicationChannel = supabase
+            .channel("admin-career-applications")
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "career_applications"
+                },
+                async payload => {
+                    const newApplication = {
+                        ...payload.new,
+                        is_read: false
+                    };
+
+                    const alreadyExists = applications.some(
+                        item => String(item.id) === String(newApplication.id)
+                    );
+
+                    if (!alreadyExists) {
+                        applications.unshift(newApplication);
+                    }
+
+                    renderApplications();
+
+                    if (!dropdownOpen) {
+                        avatar.animate(
+                            [
+                                { transform: "scale(1)" },
+                                { transform: "scale(1.12)" },
+                                { transform: "scale(1)" }
+                            ],
+                            { duration: 450 }
+                        );
+                    }
+
+                    await loadCareerTitles();
+                    renderApplications();
+                }
+            )
+            .subscribe(status => {
+                if (status === "CHANNEL_ERROR") {
+                    console.error("Application realtime subscription failed.");
                 }
             });
-
-        document.addEventListener("keydown", event => {
-            if (
-                event.key === "Escape" &&
-                document.getElementById("applicantDetailModal").classList.contains("active")
-            ) {
-                closeApplicantDetails();
-            }
-        });
-
-        await loadApplications();
     }
 
-    initialize();
+    /* =========================================
+       ADMIN AUTHORIZATION
+    ========================================= */
+
+    const {
+        data: { session },
+        error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) return;
+
+    const { data: adminProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+    if (profileError || !adminProfile || adminProfile.role !== "admin") {
+        console.error("Applicant notifications require administrator access.");
+        return;
+    }
+
+    /* =========================================
+       INITIALIZE
+    ========================================= */
+
+    await loadApplications();
+    subscribeToApplications();
+
 });
