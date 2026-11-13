@@ -295,6 +295,12 @@ document.addEventListener("DOMContentLoaded", () => {
        PROFILE DROPDOWN
     ========================================= */
 
+    const existingDropdown = document.getElementById(
+        "adminProfileDropdown"
+    );
+
+    existingDropdown?.remove();
+
     const dropdown = document.createElement("div");
 
     dropdown.className = "admin-profile-dropdown";
@@ -341,7 +347,9 @@ document.addEventListener("DOMContentLoaded", () => {
        AVATAR NOTIFICATION BADGE
     ========================================= */
 
-    let badge = document.getElementById("applicantNotificationBadge");
+    let badge = document.getElementById(
+        "applicantNotificationBadge"
+    );
 
     if (!badge) {
         badge = document.createElement("span");
@@ -354,7 +362,15 @@ document.addEventListener("DOMContentLoaded", () => {
        MODALS
     ========================================= */
 
-    function createModal(id, title, description, fields, submitText) {
+    function createModal(
+        id,
+        title,
+        description,
+        fields,
+        submitText
+    ) {
+        document.getElementById(id)?.remove();
+
         const overlay = document.createElement("div");
 
         overlay.className = "profile-modal-overlay";
@@ -393,9 +409,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        overlay.querySelector(".cancel-modal").addEventListener("click", () => {
-            closeModal(overlay);
-        });
+        overlay.querySelector(".cancel-modal").addEventListener(
+            "click",
+            () => closeModal(overlay)
+        );
 
         return overlay;
     }
@@ -446,22 +463,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeModal(modal) {
         modal.classList.remove("show");
+
         modal.querySelector("form").reset();
 
-        const message = modal.querySelector(".profile-form-message");
+        const message = modal.querySelector(
+            ".profile-form-message"
+        );
+
         message.className = "profile-form-message";
         message.textContent = "";
     }
 
     function showMessage(modal, message, type) {
-        const element = modal.querySelector(".profile-form-message");
+        const element = modal.querySelector(
+            ".profile-form-message"
+        );
 
         element.textContent = message;
         element.className = `profile-form-message ${type}`;
     }
 
     function setLoading(form, loading, text) {
-        const button = form.querySelector('button[type="submit"]');
+        const button = form.querySelector(
+            'button[type="submit"]'
+        );
 
         button.disabled = loading;
         button.textContent = loading ? "Please wait..." : text;
@@ -473,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeDropdown() {
         dropdown.classList.remove("show");
+        avatar.setAttribute("aria-expanded", "false");
     }
 
     avatar.setAttribute("role", "button");
@@ -484,7 +510,11 @@ document.addEventListener("DOMContentLoaded", () => {
         event.stopPropagation();
 
         const isOpen = dropdown.classList.toggle("show");
-        avatar.setAttribute("aria-expanded", String(isOpen));
+
+        avatar.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
     });
 
     avatar.addEventListener("keydown", event => {
@@ -501,174 +531,171 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("click", event => {
         if (!profile.contains(event.target)) {
             closeDropdown();
-            avatar.setAttribute("aria-expanded", "false");
         }
     });
 
-    document.getElementById("openAddAdmin").addEventListener("click", () => {
-        closeDropdown();
-        addAdminModal.classList.add("show");
-    });
-
-    document.getElementById("openChangePassword").addEventListener("click", () => {
-        closeDropdown();
-        passwordModal.classList.add("show");
-    });
-
-    /* =========================================
-       AUTHENTICATION & ADMIN VALIDATION
-    ========================================= */
-
-    let currentUser = null;
-
-    async function verifyAdmin() {
-        const {
-            data: { session },
-            error
-        } = await supabase.auth.getSession();
-
-        if (error || !session) {
-            window.location.href = "login.html";
-            return false;
+    document.getElementById("openAddAdmin").addEventListener(
+        "click",
+        () => {
+            closeDropdown();
+            addAdminModal.classList.add("show");
         }
+    );
 
-        const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, full_name, role")
-            .eq("id", session.user.id)
-            .single();
-
-        if (profileError || !profileData || profileData.role !== "admin") {
-            await supabase.auth.signOut();
-            window.location.href = "login.html";
-            return false;
+    document.getElementById("openChangePassword").addEventListener(
+        "click",
+        () => {
+            closeDropdown();
+            passwordModal.classList.add("show");
         }
-
-        currentUser = session.user;
-
-        return true;
-    }
+    );
 
     /* =========================================
        ADD ADMIN
-       Requires Supabase Edge Function:
-       create-admin
     ========================================= */
 
-    addAdminModal.querySelector("form").addEventListener("submit", async event => {
-        event.preventDefault();
+    addAdminModal.querySelector("form").addEventListener(
+        "submit",
+        async event => {
+            event.preventDefault();
 
-        const form = event.currentTarget;
+            const form = event.currentTarget;
 
-        const fullName = document.getElementById("newAdminName").value.trim();
-        const email = document.getElementById("newAdminEmail").value.trim();
-        const password = document.getElementById("newAdminPassword").value;
+            const fullName = document.getElementById(
+                "newAdminName"
+            ).value.trim();
 
-        if (!fullName || !email || password.length < 8) {
-            showMessage(
-                addAdminModal,
-                "Please complete all fields. Password must be at least 8 characters.",
-                "error"
-            );
-            return;
-        }
+            const email = document.getElementById(
+                "newAdminEmail"
+            ).value.trim();
 
-        setLoading(form, true, "Create Admin");
+            const password = document.getElementById(
+                "newAdminPassword"
+            ).value;
 
-        try {
-            const { data, error } = await supabase.functions.invoke(
-                "create-admin",
-                {
-                    body: {
-                        full_name: fullName,
-                        email,
-                        password
-                    }
-                }
-            );
+            if (!fullName || !email || password.length < 8) {
+                showMessage(
+                    addAdminModal,
+                    "Please complete all fields. Password must be at least 8 characters.",
+                    "error"
+                );
 
-            if (error) throw error;
-
-            if (data && data.error) {
-                throw new Error(data.error);
+                return;
             }
 
-            showMessage(
-                addAdminModal,
-                "Administrator account created successfully.",
-                "success"
-            );
+            setLoading(form, true, "Create Admin");
 
-            form.reset();
+            try {
+                const { data, error } = await supabase.functions.invoke(
+                    "create-admin",
+                    {
+                        body: {
+                            full_name: fullName,
+                            email,
+                            password
+                        }
+                    }
+                );
 
-        } catch (error) {
-            showMessage(
-                addAdminModal,
-                error.message || "Unable to create administrator account.",
-                "error"
-            );
-        } finally {
-            setLoading(form, false, "Create Admin");
+                if (error) throw error;
+
+                if (data?.error) {
+                    throw new Error(data.error);
+                }
+
+                showMessage(
+                    addAdminModal,
+                    "Administrator account created successfully.",
+                    "success"
+                );
+
+                form.reset();
+
+            } catch (error) {
+                console.error("Add admin error:", error);
+
+                showMessage(
+                    addAdminModal,
+                    error.message || "Unable to create administrator account.",
+                    "error"
+                );
+
+            } finally {
+                setLoading(form, false, "Create Admin");
+            }
         }
-    });
+    );
 
     /* =========================================
        CHANGE PASSWORD
     ========================================= */
 
-    passwordModal.querySelector("form").addEventListener("submit", async event => {
-        event.preventDefault();
+    passwordModal.querySelector("form").addEventListener(
+        "submit",
+        async event => {
+            event.preventDefault();
 
-        const form = event.currentTarget;
+            const form = event.currentTarget;
 
-        const password = document.getElementById("newPassword").value;
-        const confirmPassword = document.getElementById("confirmNewPassword").value;
+            const password = document.getElementById(
+                "newPassword"
+            ).value;
 
-        if (password.length < 8) {
-            showMessage(
-                passwordModal,
-                "Password must contain at least 8 characters.",
-                "error"
-            );
-            return;
+            const confirmPassword = document.getElementById(
+                "confirmNewPassword"
+            ).value;
+
+            if (password.length < 8) {
+                showMessage(
+                    passwordModal,
+                    "Password must contain at least 8 characters.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage(
+                    passwordModal,
+                    "Passwords do not match.",
+                    "error"
+                );
+
+                return;
+            }
+
+            setLoading(form, true, "Update Password");
+
+            try {
+                const { error } = await supabase.auth.updateUser({
+                    password
+                });
+
+                if (error) throw error;
+
+                showMessage(
+                    passwordModal,
+                    "Your password has been updated successfully.",
+                    "success"
+                );
+
+                form.reset();
+
+            } catch (error) {
+                console.error("Password update error:", error);
+
+                showMessage(
+                    passwordModal,
+                    error.message || "Unable to update password.",
+                    "error"
+                );
+
+            } finally {
+                setLoading(form, false, "Update Password");
+            }
         }
-
-        if (password !== confirmPassword) {
-            showMessage(
-                passwordModal,
-                "Passwords do not match.",
-                "error"
-            );
-            return;
-        }
-
-        setLoading(form, true, "Update Password");
-
-        try {
-            const { error } = await supabase.auth.updateUser({
-                password
-            });
-
-            if (error) throw error;
-
-            showMessage(
-                passwordModal,
-                "Your password has been updated successfully.",
-                "success"
-            );
-
-            form.reset();
-
-        } catch (error) {
-            showMessage(
-                passwordModal,
-                error.message || "Unable to update password.",
-                "error"
-            );
-        } finally {
-            setLoading(form, false, "Update Password");
-        }
-    });
+    );
 
     /* =========================================
        APPLICANT NOTIFICATION COUNT
@@ -684,21 +711,29 @@ document.addEventListener("DOMContentLoaded", () => {
             .eq("is_read", false);
 
         if (error) {
-            console.error("Applicant notification error:", error.message);
+            console.error(
+                "Applicant notification error:",
+                error.message
+            );
+
             return;
         }
 
         const total = count || 0;
+
         const countElement = document.getElementById(
             "applicantNotificationCount"
         );
 
         if (total > 0) {
-            badge.textContent = total > 99 ? "99+" : total;
+            const displayCount = total > 99 ? "99+" : total;
+
+            badge.textContent = displayCount;
             badge.style.display = "flex";
 
-            countElement.textContent = total > 99 ? "99+" : total;
+            countElement.textContent = displayCount;
             countElement.style.display = "flex";
+
         } else {
             badge.style.display = "none";
             countElement.style.display = "none";
@@ -709,59 +744,31 @@ document.addEventListener("DOMContentLoaded", () => {
        REALTIME APPLICANT UPDATES
     ========================================= */
 
-    function setupApplicantRealtime() {
-        supabase
-            .channel("admin-applicant-notifications")
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "career_applications"
-                },
-                () => {
-                    loadApplicantNotificationCount();
-                }
-            )
-            .subscribe();
-    }
-
-    /* =========================================
-       LOGOUT
-       Existing admin.js logout remains supported.
-    ========================================= */
-
-    document.addEventListener("click", async event => {
-        if (event.target.closest("#logoutButton")) {
-            event.preventDefault();
-
-            const { error } = await supabase.auth.signOut();
-
-            if (error) {
-                alert("Unable to sign out. Please try again.");
-                return;
+    const applicantChannel = supabase
+        .channel("admin-applicant-notifications")
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "career_applications"
+            },
+            () => {
+                loadApplicantNotificationCount();
             }
-
-            window.location.href = "login.html";
-        }
-    });
+        )
+        .subscribe();
 
     /* =========================================
-       INITIALIZATION
+       INITIALIZE NOTIFICATIONS
+       No admin authentication or redirects here.
     ========================================= */
 
-    async function initialize() {
-        const isAdmin = await verifyAdmin();
+    loadApplicantNotificationCount();
 
-        if (!isAdmin) return;
-
-        await loadApplicantNotificationCount();
-
-        setupApplicantRealtime();
-
-        window.addEventListener("focus", loadApplicantNotificationCount);
-    }
-
-    initialize();
+    window.addEventListener(
+        "focus",
+        loadApplicantNotificationCount
+    );
 
 });
